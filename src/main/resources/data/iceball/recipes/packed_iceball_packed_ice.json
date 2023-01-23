@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WW",
+    "WW"
+  ],
+  "key": {
+    "W": {
+      "item": "iceball:packed_iceball"
+    }
+  },
+  "result": {
+    "item": "minecraft:packed_ice",
+    "count": 1
+  }
+}

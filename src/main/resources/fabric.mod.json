@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "iceball",
+	"version": "${version}",
+	"name": "Iceball",
+	"description": "Adds different types of snowballs to the game",
+	"authors": [
+		"GrilledHam"
+	],
+	"contact": {},
+	"license": "MIT",
+	"icon": "assets/iceball/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"client": [
+			"net.grilledham.iceball.client.IceballClient"
+		],
+		"main": [
+			"net.grilledham.iceball.Iceball"
+		]
+	},
+	"mixins": [
+		"iceball.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.14.8",
+		"fabric": "*",
+		"minecraft": ">=1.19.3"
+	}
+}

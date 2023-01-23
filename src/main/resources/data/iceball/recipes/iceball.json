@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "W"
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:ice"
+    }
+  },
+  "result": {
+    "item": "iceball:iceball",
+    "count": 4
+  }
+}
