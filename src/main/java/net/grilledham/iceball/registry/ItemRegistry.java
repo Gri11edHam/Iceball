@@ -3,6 +3,7 @@ package net.grilledham.iceball.registry;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.grilledham.iceball.item.IceballItem;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -29,13 +30,13 @@ public class ItemRegistry {
 			if(group.after() != null) {
 				ItemGroupEvents.modifyEntriesEvent(group.group()).register(
 						group.isOperatorOnly() ?
-								entries -> { if(ItemGroups.operatorEnabled) entries.addAfter(group.after(), item); } :
+								entries -> { if(MinecraftClient.getInstance().options.getOperatorItemsTab().getValue()) entries.addAfter(group.after(), item); } :
 								entries -> entries.addAfter(group.after(), item)
 				);
 			} else {
 				ItemGroupEvents.modifyEntriesEvent(group.group()).register(
 						group.isOperatorOnly() ?
-								entries -> { if(ItemGroups.operatorEnabled) entries.add(item); } :
+								entries -> { if(MinecraftClient.getInstance().options.getOperatorItemsTab().getValue()) entries.add(item); } :
 								entries -> entries.add(item)
 				);
 			}
