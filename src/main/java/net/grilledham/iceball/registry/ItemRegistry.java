@@ -15,7 +15,7 @@ public class ItemRegistry {
 	public static final IceballItem ICEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.COMMON), 1, 0);
 	public static final IceballItem PACKED_ICEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.UNCOMMON), 5, 5);
 	public static final IceballItem BLUE_ICEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.RARE), 10, 10);
-	public static final IceballItem SPIKEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.EPIC), 50, 10);
+	public static final IceballItem SPIKEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.EPIC), 50, 0);
 	
 	public static void init() {
 		register("iceball", ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(Items.SNOWBALL), new ItemGroupData(ItemGroups.INGREDIENTS).after(Items.SNOWBALL));
