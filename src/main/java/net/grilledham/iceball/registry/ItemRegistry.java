@@ -7,6 +7,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 
@@ -46,10 +47,10 @@ public class ItemRegistry {
 	private static class ItemGroupData {
 		
 		private ItemConvertible after = null;
-		private final ItemGroup group;
+		private final RegistryKey<ItemGroup> group;
 		private boolean operatorOnly = false;
 		
-		public ItemGroupData(ItemGroup group) {
+		public ItemGroupData(RegistryKey<ItemGroup> group) {
 			this.group = group;
 		}
 		
@@ -67,7 +68,7 @@ public class ItemRegistry {
 			return after;
 		}
 		
-		public ItemGroup group() {
+		public RegistryKey<ItemGroup> group() {
 			return group;
 		}
 		
