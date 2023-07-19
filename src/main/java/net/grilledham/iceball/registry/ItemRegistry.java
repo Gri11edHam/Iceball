@@ -3,25 +3,35 @@ package net.grilledham.iceball.registry;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.grilledham.iceball.item.IceballItem;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.damage.DamageSources;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
+import net.minecraft.world.explosion.EntityExplosionBehavior;
+import net.minecraft.world.explosion.Explosion;
+import net.minecraft.world.explosion.ExplosionBehavior;
 
 public class ItemRegistry {
 	
 	public static final IceballItem ICEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.COMMON), 1, 0);
 	public static final IceballItem PACKED_ICEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.UNCOMMON), 5, 5);
 	public static final IceballItem BLUE_ICEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.RARE), 10, 10);
+	public static final IceballItem BOOMBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.EPIC), 0, 20, ball -> ball.getWorld().createExplosion(ball, ball.getDamageSources().explosion(ball, ball.getOwner()), new ExplosionBehavior(), ball.getPos(), 8, false, World.ExplosionSourceType.MOB));
 	public static final IceballItem SPIKEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.EPIC), 50, 0);
 	
 	public static void init() {
 		register("iceball", ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(Items.SNOWBALL), new ItemGroupData(ItemGroups.INGREDIENTS).after(Items.SNOWBALL));
 		register("packed_iceball", PACKED_ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(ICEBALL_ITEM), new ItemGroupData(ItemGroups.INGREDIENTS).after(ICEBALL_ITEM));
 		register("blue_iceball", BLUE_ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(PACKED_ICEBALL_ITEM), new ItemGroupData(ItemGroups.INGREDIENTS).after(PACKED_ICEBALL_ITEM));
+		register("boomball", BOOMBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(BLUE_ICEBALL_ITEM));
 		register("spikeball", SPIKEBALL_ITEM, new ItemGroupData(ItemGroups.OPERATOR).operatorOnly());
 	}
 	

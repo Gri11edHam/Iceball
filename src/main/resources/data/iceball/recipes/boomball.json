@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " W ",
+    "WXW",
+    " W "
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:tnt"
+    },
+    "X": {
+      "item": "minecraft:snowball"
+    }
+  },
+  "result": {
+    "item": "iceball:boomball",
+    "count": 1
+  }
+}
