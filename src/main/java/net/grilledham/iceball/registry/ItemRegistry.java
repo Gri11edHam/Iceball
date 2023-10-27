@@ -1,22 +1,18 @@
 package net.grilledham.iceball.registry;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.grilledham.iceball.item.IceballItem;
-import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.damage.DamageSources;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
-import net.minecraft.world.explosion.EntityExplosionBehavior;
-import net.minecraft.world.explosion.Explosion;
 import net.minecraft.world.explosion.ExplosionBehavior;
 
 public class ItemRegistry {
@@ -28,15 +24,28 @@ public class ItemRegistry {
 	public static final IceballItem SPIKEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.EPIC), 50, 0);
 	
 	public static void init() {
-		register("iceball", ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(Items.SNOWBALL), new ItemGroupData(ItemGroups.INGREDIENTS).after(Items.SNOWBALL));
-		register("packed_iceball", PACKED_ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(ICEBALL_ITEM), new ItemGroupData(ItemGroups.INGREDIENTS).after(ICEBALL_ITEM));
-		register("blue_iceball", BLUE_ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(PACKED_ICEBALL_ITEM), new ItemGroupData(ItemGroups.INGREDIENTS).after(PACKED_ICEBALL_ITEM));
-		register("boomball", BOOMBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(BLUE_ICEBALL_ITEM));
-		register("spikeball", SPIKEBALL_ITEM, new ItemGroupData(ItemGroups.OPERATOR).operatorOnly());
+		register("iceball", ICEBALL_ITEM);
+		register("packed_iceball", PACKED_ICEBALL_ITEM);
+		register("blue_iceball", BLUE_ICEBALL_ITEM);
+		register("boomball", BOOMBALL_ITEM);
+		register("spikeball", SPIKEBALL_ITEM);
 	}
 	
-	private static void register(String id, Item item, ItemGroupData... groups) {
+	@Environment(EnvType.CLIENT)
+	public static void initClient() {
+		registerClient(ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(Items.SNOWBALL), new ItemGroupData(ItemGroups.INGREDIENTS).after(Items.SNOWBALL));
+		registerClient(PACKED_ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(ICEBALL_ITEM), new ItemGroupData(ItemGroups.INGREDIENTS).after(ICEBALL_ITEM));
+		registerClient(BLUE_ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(PACKED_ICEBALL_ITEM), new ItemGroupData(ItemGroups.INGREDIENTS).after(PACKED_ICEBALL_ITEM));
+		registerClient(BOOMBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(BLUE_ICEBALL_ITEM));
+		registerClient(SPIKEBALL_ITEM, new ItemGroupData(ItemGroups.OPERATOR).operatorOnly());
+	}
+	
+	private static void register(String id, Item item) {
 		Registry.register(Registries.ITEM, new Identifier("iceball", id), item);
+	}
+	
+	@Environment(EnvType.CLIENT)
+	private static void registerClient(Item item, ItemGroupData... groups) {
 		for(ItemGroupData group : groups) {
 			if(group.after() != null) {
 				ItemGroupEvents.modifyEntriesEvent(group.group()).register(
