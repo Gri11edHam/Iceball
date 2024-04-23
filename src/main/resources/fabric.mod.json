@@ -23,7 +23,7 @@
 		"iceball.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.14.21",
+		"fabricloader": ">=0.15.0",
 		"fabric": "*",
 		"minecraft": ">=1.20"
 	}

@@ -2,7 +2,6 @@ package net.grilledham.iceball.registry;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.grilledham.iceball.item.IceballItem;
 import net.minecraft.client.MinecraftClient;
@@ -17,11 +16,11 @@ import net.minecraft.world.explosion.ExplosionBehavior;
 
 public class ItemRegistry {
 	
-	public static final IceballItem ICEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.COMMON), 1, 0);
-	public static final IceballItem PACKED_ICEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.UNCOMMON), 5, 5);
-	public static final IceballItem BLUE_ICEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.RARE), 10, 10);
-	public static final IceballItem BOOMBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.EPIC), 0, 20, ball -> ball.getWorld().createExplosion(ball, ball.getDamageSources().explosion(ball, ball.getOwner()), new ExplosionBehavior(), ball.getPos(), 8, false, World.ExplosionSourceType.MOB));
-	public static final IceballItem SPIKEBALL_ITEM = new IceballItem(new FabricItemSettings().maxCount(16).rarity(Rarity.EPIC), 50, 0);
+	public static final IceballItem ICEBALL_ITEM = new IceballItem(new Item.Settings().maxCount(16).rarity(Rarity.COMMON), 1, 0);
+	public static final IceballItem PACKED_ICEBALL_ITEM = new IceballItem(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON), 5, 5);
+	public static final IceballItem BLUE_ICEBALL_ITEM = new IceballItem(new Item.Settings().maxCount(16).rarity(Rarity.RARE), 10, 10);
+	public static final IceballItem BOOMBALL_ITEM = new IceballItem(new Item.Settings().maxCount(16).rarity(Rarity.EPIC), 0, 20, ball -> ball.getWorld().createExplosion(ball, ball.getDamageSources().explosion(ball, ball.getOwner()), new ExplosionBehavior(), ball.getPos(), 8, false, World.ExplosionSourceType.MOB));
+	public static final IceballItem SPIKEBALL_ITEM = new IceballItem(new Item.Settings().maxCount(16).rarity(Rarity.EPIC), 50, 0);
 	
 	public static void init() {
 		register("iceball", ICEBALL_ITEM);
