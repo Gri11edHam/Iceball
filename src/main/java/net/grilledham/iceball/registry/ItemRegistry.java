@@ -40,7 +40,7 @@ public class ItemRegistry {
 	}
 	
 	private static void register(String id, Item item) {
-		Registry.register(Registries.ITEM, new Identifier("iceball", id), item);
+		Registry.register(Registries.ITEM, Identifier.of("iceball", id), item);
 	}
 	
 	@Environment(EnvType.CLIENT)

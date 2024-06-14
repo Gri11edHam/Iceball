@@ -6,12 +6,11 @@
   ],
   "key": {
     "W": {
-      "item": "iceball:packed_iceball"
+      "item": "iceball:blue_iceball"
     }
   },
   "result": {
-    "item": "minecraft:packed_ice",
-    "id": "minecraft:packed_ice",
+    "id": "minecraft:blue_ice",
     "count": 1
   }
 }
