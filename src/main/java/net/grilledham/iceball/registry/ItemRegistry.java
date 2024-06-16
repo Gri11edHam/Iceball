@@ -5,22 +5,74 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.grilledham.iceball.item.IceballItem;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.enchantment.Enchantments;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
+import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.explosion.ExplosionBehavior;
 
 public class ItemRegistry {
 	
-	public static final IceballItem ICEBALL_ITEM = new IceballItem(new Item.Settings().maxCount(16).rarity(Rarity.COMMON), 1, 0);
-	public static final IceballItem PACKED_ICEBALL_ITEM = new IceballItem(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON), 5, 5);
-	public static final IceballItem BLUE_ICEBALL_ITEM = new IceballItem(new Item.Settings().maxCount(16).rarity(Rarity.RARE), 10, 10);
-	public static final IceballItem BOOMBALL_ITEM = new IceballItem(new Item.Settings().maxCount(16).rarity(Rarity.EPIC), 0, 20, ball -> ball.getWorld().createExplosion(ball, ball.getDamageSources().explosion(ball, ball.getOwner()), new ExplosionBehavior(), ball.getPos(), 8, false, World.ExplosionSourceType.MOB));
-	public static final IceballItem SPIKEBALL_ITEM = new IceballItem(new Item.Settings().maxCount(16).rarity(Rarity.EPIC), 50, 0);
+	public static final IceballItem ICEBALL_ITEM = new IceballItem.Builder()
+			.settings(new Item.Settings().maxCount(16).rarity(Rarity.COMMON))
+			.damage(1)
+			.cooldown(0)
+			.build();
+	public static final IceballItem PACKED_ICEBALL_ITEM = new IceballItem.Builder()
+			.settings(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON))
+			.damage(5)
+			.cooldown(5)
+			.build();
+	public static final IceballItem BLUE_ICEBALL_ITEM = new IceballItem.Builder()
+			.settings(new Item.Settings().maxCount(16).rarity(Rarity.RARE))
+			.damage(10)
+			.cooldown(10)
+			.build();
+	public static final IceballItem BOOMBALL_ITEM = new IceballItem.Builder()
+			.settings(new Item.Settings().maxCount(16).rarity(Rarity.EPIC))
+			.damage(0)
+			.cooldown(20)
+			.onCollide((ball, hitResult) -> {
+				ball.getWorld().createExplosion(ball, ball.getDamageSources().explosion(ball, ball.getOwner()), new ExplosionBehavior(), ball.getPos(), 8, false, World.ExplosionSourceType.MOB);
+				return true;
+			})
+			.build();
+	public static final IceballItem SPIKEBALL_ITEM = new IceballItem.Builder()
+			.settings(new Item.Settings().maxCount(1).rarity(Rarity.EPIC).maxDamage(100))
+			.damage(30)
+			.cooldown(20)
+			.acceptableEnchants(Enchantments.MENDING, Enchantments.UNBREAKING)
+			.onCollide((ball, hitResult) -> {
+				ball.shouldDamageOwner = false;
+				if(ball.getOwner() == null) {
+					return true;
+				}
+				if(hitResult.getType() == HitResult.Type.ENTITY) {
+					EntityHitResult ehr = (EntityHitResult)hitResult;
+					if(ehr.getEntity() == ball.getOwner()) {
+						if(ball.getOwner().isPlayer()) {
+							PlayerEntity owner = (PlayerEntity)ball.getOwner();
+							if(!owner.isInCreativeMode()) {
+								ball.getStack().damage(1, owner, owner.getPreferredEquipmentSlot(ball.getStack()));
+								owner.giveItemStack(ball.getStack());
+							}
+						}
+						return true;
+					}
+				}
+				Vec3d direction = ball.getOwner().getPos().subtract(ball.getPos()).normalize().add(0, 0.2, 0);
+				ball.setVelocity(direction.getX(), direction.getY(), direction.getZ(), 1f, 0);
+				return false;
+			})
+			.build();
 	
 	public static void init() {
 		register("iceball", ICEBALL_ITEM);
@@ -36,7 +88,7 @@ public class ItemRegistry {
 		registerClient(PACKED_ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(ICEBALL_ITEM), new ItemGroupData(ItemGroups.INGREDIENTS).after(ICEBALL_ITEM));
 		registerClient(BLUE_ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(PACKED_ICEBALL_ITEM), new ItemGroupData(ItemGroups.INGREDIENTS).after(PACKED_ICEBALL_ITEM));
 		registerClient(BOOMBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(BLUE_ICEBALL_ITEM));
-		registerClient(SPIKEBALL_ITEM, new ItemGroupData(ItemGroups.OPERATOR).operatorOnly());
+		registerClient(SPIKEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(BOOMBALL_ITEM));
 	}
 	
 	private static void register(String id, Item item) {

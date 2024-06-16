@@ -1,33 +1,42 @@
 package net.grilledham.iceball.item;
 
+import net.fabricmc.fabric.api.item.v1.EnchantingContext;
 import net.grilledham.iceball.entity.IceballEntity;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Rarity;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.world.World;
 
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.BiFunction;
 
 public class IceballItem extends Item {
 	
 	private final int damage;
 	private final int cooldown;
-	private final Consumer<IceballEntity> onCollide;
+	private final BiFunction<IceballEntity, HitResult, Boolean> onCollide;
+	private final List<RegistryKey<Enchantment>> primaryEnchants;
+	private final List<RegistryKey<Enchantment>> acceptableEnchants;
 	
-	public IceballItem(Settings settings, int damage, int cooldown) {
-		this(settings, damage, cooldown, ball -> {});
-	}
-	
-	public IceballItem(Settings settings, int damage, int cooldown, Consumer<IceballEntity> onCollide) {
+	private IceballItem(Settings settings, int damage, int cooldown, BiFunction<IceballEntity, HitResult, Boolean> onCollide, List<RegistryKey<Enchantment>> primaryEnchants, List<RegistryKey<Enchantment>> acceptableEnchants) {
 		super(settings);
 		this.damage = damage;
 		this.cooldown = cooldown;
 		this.onCollide = onCollide;
+		this.primaryEnchants = primaryEnchants;
+		this.acceptableEnchants = acceptableEnchants;
 	}
 	
 	@Override
@@ -48,5 +57,73 @@ public class IceballItem extends Item {
 		}
 		
 		return TypedActionResult.success(itemStack, world.isClient());
+	}
+	
+	@Override
+	public boolean canBeEnchantedWith(ItemStack stack, RegistryEntry<Enchantment> enchantment, EnchantingContext context) {
+		switch(context) {
+			case PRIMARY -> {
+				for(RegistryKey<Enchantment> key : primaryEnchants) {
+					if(enchantment.matchesKey(key)) {
+						return true;
+					}
+				}
+				return super.canBeEnchantedWith(stack, enchantment, context);
+			}
+			case ACCEPTABLE -> {
+				for(RegistryKey<Enchantment> key : acceptableEnchants) {
+					if(enchantment.matchesKey(key)) {
+						return true;
+					}
+				}
+				return super.canBeEnchantedWith(stack, enchantment, context);
+			}
+		}
+		return super.canBeEnchantedWith(stack, enchantment, context);
+	}
+	
+	public static class Builder {
+		private Settings settings = new Item.Settings().maxCount(16).rarity(Rarity.COMMON);
+		private int damage = 1;
+		private int cooldown = 0;
+		private BiFunction<IceballEntity, HitResult, Boolean> onCollide = (ball, hitResult) -> true;
+		private List<RegistryKey<Enchantment>> primaryEnchants = new ArrayList<>();
+		private List<RegistryKey<Enchantment>> acceptableEnchants = new ArrayList<>();
+		
+		public Builder settings(Settings settings) {
+			this.settings = settings;
+			return this;
+		}
+		
+		public Builder damage(int damage) {
+			this.damage = damage;
+			return this;
+		}
+		
+		public Builder cooldown(int cooldown) {
+			this.cooldown = cooldown;
+			return this;
+		}
+		
+		public Builder onCollide(BiFunction<IceballEntity, HitResult, Boolean> onCollide) {
+			this.onCollide = onCollide;
+			return this;
+		}
+		
+		@SafeVarargs
+		public final Builder primaryEnchants(RegistryKey<Enchantment>... enchants) {
+			this.primaryEnchants = Arrays.asList(enchants);
+			return this;
+		}
+		
+		@SafeVarargs
+		public final Builder acceptableEnchants(RegistryKey<Enchantment>... enchants) {
+			this.acceptableEnchants = Arrays.asList(enchants);
+			return this;
+		}
+		
+		public IceballItem build() {
+			return new IceballItem(settings, damage, cooldown, onCollide, primaryEnchants, acceptableEnchants);
+		}
 	}
 }
