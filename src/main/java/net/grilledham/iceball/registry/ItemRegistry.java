@@ -62,7 +62,9 @@ public class ItemRegistry {
 							PlayerEntity owner = (PlayerEntity)ball.getOwner();
 							if(!owner.isInCreativeMode()) {
 								ball.getStack().damage(1, owner, owner.getPreferredEquipmentSlot(ball.getStack()));
-								owner.giveItemStack(ball.getStack());
+								if(!owner.giveItemStack(ball.getStack())) {
+									ball.dropStack(ball.getStack());
+								}
 							}
 						}
 						return true;
