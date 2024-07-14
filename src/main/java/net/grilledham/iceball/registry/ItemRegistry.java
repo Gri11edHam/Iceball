@@ -5,6 +5,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.grilledham.iceball.item.IceballItem;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.component.type.FoodComponent;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
@@ -75,6 +76,8 @@ public class ItemRegistry {
 				return false;
 			})
 			.build();
+	public static final Item MEATBALL_ITEM = new Item(new Item.Settings().food(new FoodComponent.Builder().nutrition(5).saturationModifier(0.3f).build()));
+	public static final Item COOKED_MEATBALL_ITEM = new Item(new Item.Settings().food(new FoodComponent.Builder().nutrition(10).saturationModifier(1.0f).build()));
 	
 	public static void init() {
 		register("iceball", ICEBALL_ITEM);
@@ -82,6 +85,8 @@ public class ItemRegistry {
 		register("blue_iceball", BLUE_ICEBALL_ITEM);
 		register("boomball", BOOMBALL_ITEM);
 		register("spikeball", SPIKEBALL_ITEM);
+		register("meatball", MEATBALL_ITEM);
+		register("cooked_meatball", COOKED_MEATBALL_ITEM);
 	}
 	
 	@Environment(EnvType.CLIENT)
@@ -91,6 +96,8 @@ public class ItemRegistry {
 		registerClient(BLUE_ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(PACKED_ICEBALL_ITEM), new ItemGroupData(ItemGroups.INGREDIENTS).after(PACKED_ICEBALL_ITEM));
 		registerClient(BOOMBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(BLUE_ICEBALL_ITEM));
 		registerClient(SPIKEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(BOOMBALL_ITEM));
+		registerClient(MEATBALL_ITEM, new ItemGroupData(ItemGroups.FOOD_AND_DRINK).after(Items.COOKED_RABBIT));
+		registerClient(COOKED_MEATBALL_ITEM, new ItemGroupData(ItemGroups.FOOD_AND_DRINK).after(MEATBALL_ITEM));
 	}
 	
 	private static void register(String id, Item item) {
