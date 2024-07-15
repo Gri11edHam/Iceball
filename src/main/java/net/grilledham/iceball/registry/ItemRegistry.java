@@ -4,6 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.grilledham.iceball.item.IceballItem;
+import net.minecraft.block.DispenserBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.enchantment.Enchantments;
@@ -54,6 +55,7 @@ public class ItemRegistry {
 			.onCollide((ball, hitResult) -> {
 				ball.shouldDamageOwner = false;
 				if(ball.getOwner() == null) {
+					ball.dropStack(ball.getStack());
 					return true;
 				}
 				if(hitResult.getType() == HitResult.Type.ENTITY) {
@@ -87,6 +89,14 @@ public class ItemRegistry {
 		register("spikeball", SPIKEBALL_ITEM);
 		register("meatball", MEATBALL_ITEM);
 		register("cooked_meatball", COOKED_MEATBALL_ITEM);
+		
+		DispenserBlock.registerProjectileBehavior(ICEBALL_ITEM);
+		DispenserBlock.registerProjectileBehavior(PACKED_ICEBALL_ITEM);
+		DispenserBlock.registerProjectileBehavior(BLUE_ICEBALL_ITEM);
+		DispenserBlock.registerProjectileBehavior(BOOMBALL_ITEM);
+		DispenserBlock.registerProjectileBehavior(SPIKEBALL_ITEM);
+		DispenserBlock.registerProjectileBehavior(BOUNCY_BALL_ITEM);
+		
 	}
 	
 	@Environment(EnvType.CLIENT)

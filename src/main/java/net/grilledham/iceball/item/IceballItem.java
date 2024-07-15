@@ -4,8 +4,10 @@ import net.fabricmc.fabric.api.item.v1.EnchantingContext;
 import net.grilledham.iceball.entity.IceballEntity;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ProjectileItem;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundCategory;
@@ -15,6 +17,8 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Position;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -22,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
 
-public class IceballItem extends Item {
+public class IceballItem extends Item implements ProjectileItem {
 	
 	private final int damage;
 	private final int cooldown;
@@ -30,7 +34,7 @@ public class IceballItem extends Item {
 	private final List<RegistryKey<Enchantment>> primaryEnchants;
 	private final List<RegistryKey<Enchantment>> acceptableEnchants;
 	
-	private IceballItem(Settings settings, int damage, int cooldown, BiFunction<IceballEntity, HitResult, Boolean> onCollide, List<RegistryKey<Enchantment>> primaryEnchants, List<RegistryKey<Enchantment>> acceptableEnchants) {
+	IceballItem(Item.Settings settings, int damage, int cooldown, BiFunction<IceballEntity, HitResult, Boolean> onCollide, List<RegistryKey<Enchantment>> primaryEnchants, List<RegistryKey<Enchantment>> acceptableEnchants) {
 		super(settings);
 		this.damage = damage;
 		this.cooldown = cooldown;
@@ -82,15 +86,22 @@ public class IceballItem extends Item {
 		return super.canBeEnchantedWith(stack, enchantment, context);
 	}
 	
+	@Override
+	public ProjectileEntity createEntity(World world, Position pos, ItemStack stack, Direction direction) {
+		IceballEntity iceballEntity = new IceballEntity(world, pos, damage, onCollide);
+		iceballEntity.setItem(stack);
+		return iceballEntity;
+	}
+	
 	public static class Builder {
-		private Settings settings = new Item.Settings().maxCount(16).rarity(Rarity.COMMON);
+		private Item.Settings settings = new Item.Settings().maxCount(16).rarity(Rarity.COMMON);
 		private int damage = 1;
 		private int cooldown = 0;
 		private BiFunction<IceballEntity, HitResult, Boolean> onCollide = (ball, hitResult) -> true;
 		private List<RegistryKey<Enchantment>> primaryEnchants = new ArrayList<>();
 		private List<RegistryKey<Enchantment>> acceptableEnchants = new ArrayList<>();
 		
-		public Builder settings(Settings settings) {
+		public Builder settings(Item.Settings settings) {
 			this.settings = settings;
 			return this;
 		}
