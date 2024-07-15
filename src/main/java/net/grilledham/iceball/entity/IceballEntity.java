@@ -14,6 +14,7 @@ import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Position;
 import net.minecraft.world.World;
 
 import java.util.function.BiFunction;
@@ -26,6 +27,12 @@ public class IceballEntity extends ThrownItemEntity {
 	
 	public IceballEntity(World world, LivingEntity owner, int damage, BiFunction<IceballEntity, HitResult, Boolean> onCollide) {
 		super(EntityType.SNOWBALL, owner, world);
+		this.damage = damage;
+		this.onCollide = onCollide;
+	}
+	
+	public IceballEntity(World world, Position pos, int damage, BiFunction<IceballEntity, HitResult, Boolean> onCollide) {
+		super(EntityType.SNOWBALL, pos.getX(), pos.getY(), pos.getZ(), world);
 		this.damage = damage;
 		this.onCollide = onCollide;
 	}

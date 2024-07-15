@@ -2,10 +2,12 @@ package net.grilledham.iceball.registry;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.grilledham.iceball.item.IceballItem;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.player.PlayerEntity;
@@ -15,6 +17,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
@@ -80,6 +83,43 @@ public class ItemRegistry {
 			.build();
 	public static final Item MEATBALL_ITEM = new Item(new Item.Settings().food(new FoodComponent.Builder().nutrition(5).saturationModifier(0.3f).build()));
 	public static final Item COOKED_MEATBALL_ITEM = new Item(new Item.Settings().food(new FoodComponent.Builder().nutrition(10).saturationModifier(1.0f).build()));
+	public static final IceballItem BOUNCY_BALL_ITEM = new IceballItem.Builder()
+			.settings(new Item.Settings().maxCount(16).rarity(Rarity.COMMON))
+			.damage(1)
+			.cooldown(0)
+			.onCollide((ball, hitResult) -> {
+				if(hitResult instanceof BlockHitResult bhr) {
+					Vec3d velocity = ball.getVelocity().add(ball.getVelocity().multiply(new Vec3d(bhr.getSide().getUnitVector().absolute().mul(-1.7f))));
+					ball.setVelocity(velocity.getX(), velocity.getY(), velocity.getZ(), (float)(ball.getVelocity().length() * 0.8), 0);
+				} else if(hitResult instanceof EntityHitResult) {
+					if(ball.getOwner() != null) {
+						if(ball.getOwner().isPlayer()) {
+							PlayerEntity owner = (PlayerEntity)ball.getOwner();
+							if(!owner.isInCreativeMode()) {
+								ball.dropStack(ball.getStack());
+							}
+						}
+					} else {
+						ball.dropStack(ball.getStack());
+					}
+					return true;
+				}
+				if(ball.getVelocity().length() < 0.1) {
+					if(ball.getOwner() != null) {
+						if(ball.getOwner().isPlayer()) {
+							PlayerEntity owner = (PlayerEntity)ball.getOwner();
+							if(!owner.isInCreativeMode()) {
+								ball.dropStack(ball.getStack());
+							}
+						}
+					} else {
+						ball.dropStack(ball.getStack());
+					}
+					return true;
+				}
+				return false;
+			})
+			.build();
 	
 	public static void init() {
 		register("iceball", ICEBALL_ITEM);
@@ -108,6 +148,9 @@ public class ItemRegistry {
 		registerClient(SPIKEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(BOOMBALL_ITEM));
 		registerClient(MEATBALL_ITEM, new ItemGroupData(ItemGroups.FOOD_AND_DRINK).after(Items.COOKED_RABBIT));
 		registerClient(COOKED_MEATBALL_ITEM, new ItemGroupData(ItemGroups.FOOD_AND_DRINK).after(MEATBALL_ITEM));
+		registerClient(BOUNCY_BALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(SPIKEBALL_ITEM));
+		
+		ColorProviderRegistry.ITEM.register((stack, tintIndex) -> DyedColorComponent.getColor(stack, 0xFF88DD88), BOUNCY_BALL_ITEM);
 	}
 	
 	private static void register(String id, Item item) {
