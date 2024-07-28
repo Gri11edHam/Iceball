@@ -4,22 +4,31 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.grilledham.iceball.entity.BigBouncyBallEntity;
+import net.grilledham.iceball.item.BigBouncyBallItem;
 import net.grilledham.iceball.item.IceballItem;
 import net.minecraft.block.DispenserBlock;
+import net.minecraft.block.dispenser.ItemDispenserBehavior;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.enchantment.Enchantments;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.BlockPointer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.explosion.ExplosionBehavior;
@@ -120,6 +129,7 @@ public class ItemRegistry {
 				return false;
 			})
 			.build();
+	public static final BigBouncyBallItem BIG_BOUNCY_BALL_ITEM = new BigBouncyBallItem(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON));
 	
 	public static void init() {
 		register("iceball", ICEBALL_ITEM);
@@ -129,6 +139,8 @@ public class ItemRegistry {
 		register("spikeball", SPIKEBALL_ITEM);
 		register("meatball", MEATBALL_ITEM);
 		register("cooked_meatball", COOKED_MEATBALL_ITEM);
+		register("bouncy_ball", BOUNCY_BALL_ITEM);
+		register("big_bouncy_ball", BIG_BOUNCY_BALL_ITEM);
 		
 		DispenserBlock.registerProjectileBehavior(ICEBALL_ITEM);
 		DispenserBlock.registerProjectileBehavior(PACKED_ICEBALL_ITEM);
@@ -136,7 +148,20 @@ public class ItemRegistry {
 		DispenserBlock.registerProjectileBehavior(BOOMBALL_ITEM);
 		DispenserBlock.registerProjectileBehavior(SPIKEBALL_ITEM);
 		DispenserBlock.registerProjectileBehavior(BOUNCY_BALL_ITEM);
-		
+		DispenserBlock.registerBehavior(BIG_BOUNCY_BALL_ITEM, new ItemDispenserBehavior() {
+			@Override
+			protected ItemStack dispenseSilently(BlockPointer pointer, ItemStack stack) {
+				Direction direction = pointer.state().get(DispenserBlock.FACING);
+				BlockPos blockPos = pointer.pos().offset(direction);
+				ServerWorld serverWorld = pointer.world();
+				BigBouncyBallEntity bigBouncyBallEntity = EntityRegistry.BIG_BOUNCY_BALL_ENTITY.spawn(serverWorld, EntityType.copier(bigBouncyBall -> bigBouncyBall.setYaw(direction.asRotation()), serverWorld, stack, null), blockPos, SpawnReason.DISPENSER, false, false);
+				if (bigBouncyBallEntity != null) {
+					bigBouncyBallEntity.setBallColor(DyedColorComponent.getColor(stack, 0xFF88DD88));
+					stack.decrement(1);
+				}
+				return stack;
+			}
+		});
 	}
 	
 	@Environment(EnvType.CLIENT)
@@ -149,8 +174,10 @@ public class ItemRegistry {
 		registerClient(MEATBALL_ITEM, new ItemGroupData(ItemGroups.FOOD_AND_DRINK).after(Items.COOKED_RABBIT));
 		registerClient(COOKED_MEATBALL_ITEM, new ItemGroupData(ItemGroups.FOOD_AND_DRINK).after(MEATBALL_ITEM));
 		registerClient(BOUNCY_BALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(SPIKEBALL_ITEM));
+		registerClient(BIG_BOUNCY_BALL_ITEM, new ItemGroupData(ItemGroups.TOOLS).after(Items.BAMBOO_CHEST_RAFT));
 		
 		ColorProviderRegistry.ITEM.register((stack, tintIndex) -> DyedColorComponent.getColor(stack, 0xFF88DD88), BOUNCY_BALL_ITEM);
+		ColorProviderRegistry.ITEM.register((stack, tintIndex) -> DyedColorComponent.getColor(stack, 0xFF88DD88), BIG_BOUNCY_BALL_ITEM);
 	}
 	
 	private static void register(String id, Item item) {

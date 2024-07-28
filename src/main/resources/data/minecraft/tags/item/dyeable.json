@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "iceball:bouncy_ball"
+    "iceball:bouncy_ball",
+    "iceball:big_bouncy_ball"
   ]
 }
