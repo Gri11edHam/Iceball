@@ -34,9 +34,9 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	protected static final TrackedData<Integer> DAMAGE_WOBBLE_SIDE = DataTracker.registerData(BigBouncyBallEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	protected static final TrackedData<Float> DAMAGE_WOBBLE_STRENGTH = DataTracker.registerData(BigBouncyBallEntity.class, TrackedDataHandlerRegistry.FLOAT);
 	protected static final TrackedData<Integer> BALL_COLOR = DataTracker.registerData(BigBouncyBallEntity.class, TrackedDataHandlerRegistry.INTEGER);
+	protected static final TrackedData<Byte> ANIMATIONS = DataTracker.registerData(BigBouncyBallEntity.class, TrackedDataHandlerRegistry.BYTE);
 	
 	public final AnimationState smallBounceAnimationState = new AnimationState();
-	public final AnimationState chargeBounceAnimationState = new AnimationState();
 	public final AnimationState bigBounceAnimationState = new AnimationState();
 	
 	private boolean moveForward = false;
@@ -44,9 +44,9 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	private boolean moveLeft = false;
 	private boolean moveRight = false;
 	private boolean chargingJump = false;
-	private boolean jumped = false;
 	private int jumpStrength = 0;
 	private int chargingTicks = 0;
+	private int animationTicks = 0;
 	private double x;
 	private double y;
 	private double z;
@@ -113,6 +113,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		builder.add(DAMAGE_WOBBLE_SIDE, 1);
 		builder.add(DAMAGE_WOBBLE_STRENGTH, 0.0f);
 		builder.add(BALL_COLOR, 0xFF88DD88);
+		builder.add(ANIMATIONS, (byte)0);
 	}
 	
 	public void setDamageWobbleTicks(int damageWobbleTicks) {
@@ -127,6 +128,22 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		this.dataTracker.set(DAMAGE_WOBBLE_STRENGTH, damageWobbleStrength);
 	}
 	
+	public void setSmallBounce(boolean smallBounce) {
+		if(smallBounce) {
+			this.dataTracker.set(ANIMATIONS, (byte)(this.dataTracker.get(ANIMATIONS) | 0b00000001));
+		} else {
+			this.dataTracker.set(ANIMATIONS, (byte)(this.dataTracker.get(ANIMATIONS) & 0b00000010));
+		}
+	}
+	
+	public void setBigBounce(boolean bigBounce) {
+		if(bigBounce) {
+			this.dataTracker.set(ANIMATIONS, (byte)(this.dataTracker.get(ANIMATIONS) | 0b00000010));
+		} else {
+			this.dataTracker.set(ANIMATIONS, (byte)(this.dataTracker.get(ANIMATIONS) & 0b00000001));
+		}
+	}
+	
 	public float getDamageWobbleStrength() {
 		return this.dataTracker.get(DAMAGE_WOBBLE_STRENGTH);
 	}
@@ -137,6 +154,14 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	
 	public int getDamageWobbleSide() {
 		return this.dataTracker.get(DAMAGE_WOBBLE_SIDE);
+	}
+	
+	public boolean isSmallBounce() {
+		return (this.dataTracker.get(ANIMATIONS) & 0b00000001) > 0;
+	}
+	
+	public boolean isBigBounce() {
+		return (this.dataTracker.get(ANIMATIONS) & 0b00000010) > 0;
 	}
 	
 	protected void killAndDropSelf(DamageSource source) {
@@ -150,7 +175,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		this.z = z;
 		this.ballYaw = yaw;
 		this.ballPitch = pitch;
-		lerpTicks = 10;
+		lerpTicks = interpolationSteps;
 	}
 	
 	@Override
@@ -173,18 +198,13 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		if(smallBounceAnimationState.isRunning()) {
 			return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).subtract(0, Math.sin(Math.PI * (smallBounceAnimationState.getTimeRunning() / 250f)) / 4, 0);
 		}
-		if(chargeBounceAnimationState.isRunning()) {
-			if(chargeBounceAnimationState.getTimeRunning() >= 500) {
-				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).subtract(0, 1, 0);
-			} else {
-				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).subtract(0, (chargeBounceAnimationState.getTimeRunning() / 500f), 0);
-			}
-		}
 		if(bigBounceAnimationState.isRunning()) {
-			if(bigBounceAnimationState.getTimeRunning() >= 250) {
+			if(bigBounceAnimationState.getTimeRunning() >= 750) {
 				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor);
+			} else if(bigBounceAnimationState.getTimeRunning() >= 500) {
+				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).add(0, Math.sin(Math.PI * ((bigBounceAnimationState.getTimeRunning() - 500) / 250f)), 0);
 			} else {
-				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).add(0, Math.sin(Math.PI * (bigBounceAnimationState.getTimeRunning() / 250f)), 0);
+				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).subtract(0, (bigBounceAnimationState.getTimeRunning() / 500f), 0);
 			}
 		}
 		return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor);
@@ -239,7 +259,6 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 				} else if(isOnGround()) {
 					chargingTicks++;
 					if(chargingTicks >= 10) {
-						jumped = true;
 						chargingJump = false;
 						float jumpStrength = this.jumpStrength >= 90 ? 1.0f : 0.4f + 0.4f * (float)this.jumpStrength / 90.0f;
 						Vec3d velocity = getVelocity();
@@ -289,27 +308,29 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 			}
 		}
 		
-		if(hasPassengers() && (chargingJump || jumped)) {
+		if(hasPassengers() && isBigBounce() && (isOnGround() || animationTicks >= 10)) {
 			smallBounceAnimationState.stop();
-			if(jumped) {
-				chargeBounceAnimationState.stop();
-				bigBounceAnimationState.startIfNotRunning(age);
-				if(bigBounceAnimationState.getTimeRunning() >= 500) {
-					jumped = false;
-					chargingJump = false;
-				}
-			} else if(isOnGround()) {
-				chargeBounceAnimationState.startIfNotRunning(age);
+			bigBounceAnimationState.startIfNotRunning(age);
+			if(bigBounceAnimationState.getTimeRunning() >= 1000) {
+				setBigBounce(false);
 			}
 		} else {
 			bigBounceAnimationState.stop();
-			chargeBounceAnimationState.stop();
-			if(getVelocity().multiply(1, 0, 1).length() > 0.1 && isOnGround()) {
+			if(isSmallBounce()) {
 				smallBounceAnimationState.startIfNotRunning(age);
 			} else {
 				smallBounceAnimationState.stop();
 			}
 		}
+		if(isBigBounce() && (isOnGround() || animationTicks >= 10)) {
+			animationTicks++;
+			if(animationTicks >= 20) {
+				animationTicks = 0;
+				setBigBounce(false);
+			}
+		}
+		Vec3d prevPos = new Vec3d(prevX, 0, prevZ);
+		setSmallBounce(prevPos.distanceTo(getPos().multiply(1, 0, 1)) > 0.1 && isOnGround());
 	}
 	
 	public void setInputs(boolean moveForward, boolean moveBack, boolean moveLeft, boolean moveRight) {
@@ -402,18 +423,22 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	public void setJumpStrength(int strength) {
 		chargingJump = true;
 		chargingTicks = 0;
+		animationTicks = 0;
+		setBigBounce(true);
 		jumpStrength = strength;
 	}
 	
 	@Override
 	public boolean canJump() {
-		return getControllingPassenger() != null && !chargingJump;
+		return getControllingPassenger() != null;
 	}
 	
 	@Override
 	public void startJumping(int height) {
 		chargingJump = true;
 		chargingTicks = 0;
+		animationTicks = 0;
+		setBigBounce(true);
 	}
 	
 	@Override

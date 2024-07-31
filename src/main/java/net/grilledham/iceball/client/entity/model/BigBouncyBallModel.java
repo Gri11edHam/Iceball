@@ -30,7 +30,6 @@ public class BigBouncyBallModel extends SinglePartEntityModel<BigBouncyBallEntit
 	public void setAngles(BigBouncyBallEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		root.traverse().forEach(ModelPart::resetTransform);
 		this.updateAnimation(entity.smallBounceAnimationState, BigBouncyBallModelAnimation.SMALL_BOUNCE, ageInTicks);
-		this.updateAnimation(entity.chargeBounceAnimationState, BigBouncyBallModelAnimation.CHARGE_BOUNCE, ageInTicks);
 		this.updateAnimation(entity.bigBounceAnimationState, BigBouncyBallModelAnimation.BIG_BOUNCE, ageInTicks);
 	}
 	
