@@ -28,10 +28,11 @@ public class EntityRegistry {
 	public static void init() {}
 	
 	@Environment(EnvType.CLIENT)
-	public static final EntityModelLayer BIG_BOUNCY_BALL_MODEL_LAYER = new EntityModelLayer(Identifier.of("iceball", "big_bouncy_ball"), "main");
+	public static EntityModelLayer BIG_BOUNCY_BALL_MODEL_LAYER;
 	
 	@Environment(EnvType.CLIENT)
 	public static void initClient() {
+		BIG_BOUNCY_BALL_MODEL_LAYER = new EntityModelLayer(Identifier.of("iceball", "big_bouncy_ball"), "main");
 		EntityRendererRegistry.register(BIG_BOUNCY_BALL_ENTITY, BigBouncyBallRenderer::new);
 		
 		EntityModelLayerRegistry.registerModelLayer(BIG_BOUNCY_BALL_MODEL_LAYER, BigBouncyBallModel::getTexturedModelData);
