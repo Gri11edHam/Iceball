@@ -7,5 +7,7 @@
   "item.iceball.meatball": "Meatball",
   "item.iceball.cooked_meatball": "Cooked Meatball",
   "item.iceball.bouncy_ball": "Bouncy Ball",
-  "item.iceball.big_bouncy_ball": "Big Bouncy Ball"
+  "item.iceball.big_bouncy_ball": "Big Bouncy Ball",
+  "item.iceball.lightning_ball": "Lightning Ball",
+  "item.iceball.charged_lightning_ball": "Charged Lightning Ball"
 }

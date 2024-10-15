@@ -4,6 +4,7 @@
   "package": "net.grilledham.iceball.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "LightningRodBlockMixin"
   ],
   "client": [
     "BigBouncyBallInputsMixin"

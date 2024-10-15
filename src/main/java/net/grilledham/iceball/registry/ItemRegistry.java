@@ -14,6 +14,8 @@ import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
@@ -130,6 +132,53 @@ public class ItemRegistry {
 			})
 			.build();
 	public static final BigBouncyBallItem BIG_BOUNCY_BALL_ITEM = new BigBouncyBallItem(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON));
+	public static final IceballItem LIGHTNING_BALL_ITEM = new IceballItem.Builder()
+			.settings(new Item.Settings().maxCount(16).rarity(Rarity.COMMON))
+			.damage(1)
+			.cooldown(0)
+			.onCollide((ball, hitResult) -> {
+				if(ball.getOwner() != null) {
+					if(ball.getOwner().isPlayer()) {
+						PlayerEntity owner = (PlayerEntity)ball.getOwner();
+						if(!owner.isInCreativeMode()) {
+							ball.dropStack(ball.getStack());
+						}
+					}
+				} else {
+					ball.dropStack(ball.getStack());
+				}
+				return true;
+			})
+			.build();
+	public static final IceballItem CHARGED_LIGHTNING_BALL_ITEM = new IceballItem.Builder()
+			.settings(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON))
+			.damage(0)
+			.cooldown(5)
+			.onCollide((ball, hitResult) -> {
+				LightningEntity lightning = new LightningEntity(EntityType.LIGHTNING_BOLT, ball.getWorld());
+				lightning.setPosition(ball.getPos());
+				ball.getWorld().spawnEntity(lightning);
+				if(!ball.getWorld().isClient) {
+					if(ball.getOwner() != null) {
+						if(ball.getOwner().isPlayer()) {
+							PlayerEntity owner = (PlayerEntity)ball.getOwner();
+							if(!owner.isInCreativeMode()) {
+								ItemEntity itemEntity = new ItemEntity(ball.getWorld(), ball.getX(), ball.getY(), ball.getZ(), ball.getStack().withItem(LIGHTNING_BALL_ITEM));
+								itemEntity.setInvulnerable(true);
+								itemEntity.setToDefaultPickupDelay();
+								ball.getWorld().spawnEntity(itemEntity);
+							}
+						}
+					} else {
+						ItemEntity itemEntity = new ItemEntity(ball.getWorld(), ball.getX(), ball.getY(), ball.getZ(), ball.getStack().withItem(LIGHTNING_BALL_ITEM));
+						itemEntity.setInvulnerable(true);
+						itemEntity.setToDefaultPickupDelay();
+						ball.getWorld().spawnEntity(itemEntity);
+					}
+				}
+				return true;
+			})
+			.build();
 	
 	public static void init() {
 		register("iceball", ICEBALL_ITEM);
@@ -141,6 +190,8 @@ public class ItemRegistry {
 		register("cooked_meatball", COOKED_MEATBALL_ITEM);
 		register("bouncy_ball", BOUNCY_BALL_ITEM);
 		register("big_bouncy_ball", BIG_BOUNCY_BALL_ITEM);
+		register("lightning_ball", LIGHTNING_BALL_ITEM);
+		register("charged_lightning_ball", CHARGED_LIGHTNING_BALL_ITEM);
 		
 		DispenserBlock.registerProjectileBehavior(ICEBALL_ITEM);
 		DispenserBlock.registerProjectileBehavior(PACKED_ICEBALL_ITEM);
@@ -155,13 +206,15 @@ public class ItemRegistry {
 				BlockPos blockPos = pointer.pos().offset(direction);
 				ServerWorld serverWorld = pointer.world();
 				BigBouncyBallEntity bigBouncyBallEntity = EntityRegistry.BIG_BOUNCY_BALL_ENTITY.spawn(serverWorld, EntityType.copier(bigBouncyBall -> bigBouncyBall.setYaw(direction.asRotation()), serverWorld, stack, null), blockPos, SpawnReason.DISPENSER, false, false);
-				if (bigBouncyBallEntity != null) {
+				if(bigBouncyBallEntity != null) {
 					bigBouncyBallEntity.setBallColor(DyedColorComponent.getColor(stack, 0xFF88DD88));
 					stack.decrement(1);
 				}
 				return stack;
 			}
 		});
+		DispenserBlock.registerProjectileBehavior(LIGHTNING_BALL_ITEM);
+		DispenserBlock.registerProjectileBehavior(CHARGED_LIGHTNING_BALL_ITEM);
 	}
 	
 	@Environment(EnvType.CLIENT)
@@ -170,7 +223,9 @@ public class ItemRegistry {
 		registerClient(PACKED_ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(ICEBALL_ITEM), new ItemGroupData(ItemGroups.INGREDIENTS).after(ICEBALL_ITEM));
 		registerClient(BLUE_ICEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(PACKED_ICEBALL_ITEM), new ItemGroupData(ItemGroups.INGREDIENTS).after(PACKED_ICEBALL_ITEM));
 		registerClient(BOOMBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(BLUE_ICEBALL_ITEM));
-		registerClient(SPIKEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(BOOMBALL_ITEM));
+		registerClient(LIGHTNING_BALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(BOOMBALL_ITEM));
+		registerClient(CHARGED_LIGHTNING_BALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(LIGHTNING_BALL_ITEM));
+		registerClient(SPIKEBALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(CHARGED_LIGHTNING_BALL_ITEM));
 		registerClient(MEATBALL_ITEM, new ItemGroupData(ItemGroups.FOOD_AND_DRINK).after(Items.COOKED_RABBIT));
 		registerClient(COOKED_MEATBALL_ITEM, new ItemGroupData(ItemGroups.FOOD_AND_DRINK).after(MEATBALL_ITEM));
 		registerClient(BOUNCY_BALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(SPIKEBALL_ITEM));
