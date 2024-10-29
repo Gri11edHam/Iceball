@@ -28,8 +28,8 @@ public class BigBouncyBallInputsMixin extends AbstractClientPlayerEntity {
 	private void updateInputs(CallbackInfo ci) {
 		Entity entity = getControllingVehicle();
 		if (entity instanceof BigBouncyBallEntity ballEntity) {
-			ballEntity.setInputs(this.input.pressingForward, this.input.pressingBack, this.input.pressingLeft, this.input.pressingRight);
-			this.riding |= this.input.pressingLeft || this.input.pressingRight || this.input.pressingForward || this.input.pressingBack;
+			ballEntity.setInputs(this.input.playerInput.forward(), this.input.playerInput.backward(), this.input.playerInput.left(), this.input.playerInput.right());
+			this.riding |= this.input.playerInput.left() || this.input.playerInput.right() || this.input.playerInput.forward() || this.input.playerInput.backward();
 		}
 	}
 }

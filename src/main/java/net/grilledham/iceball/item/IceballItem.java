@@ -13,9 +13,8 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Rarity;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Position;
@@ -25,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class IceballItem extends Item implements ProjectileItem {
 	
@@ -44,12 +44,12 @@ public class IceballItem extends Item implements ProjectileItem {
 	}
 	
 	@Override
-	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+	public ActionResult use(World world, PlayerEntity user, Hand hand) {
 		ItemStack itemStack = user.getStackInHand(hand);
 		world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_SNOWBALL_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (world.getRandom().nextFloat() * 0.4F + 0.8F));
-		user.getItemCooldownManager().set(this, cooldown);
+		user.getItemCooldownManager().set(itemStack, cooldown);
 		if (!world.isClient) {
-			IceballEntity iceballEntity = new IceballEntity(world, user, damage, onCollide);
+			IceballEntity iceballEntity = new IceballEntity(world, user, itemStack, damage, onCollide);
 			iceballEntity.setItem(itemStack);
 			iceballEntity.setVelocity(user, user.getPitch(), user.getYaw(), 0.0F, 1.5F, 1.0F);
 			world.spawnEntity(iceballEntity);
@@ -60,7 +60,7 @@ public class IceballItem extends Item implements ProjectileItem {
 			itemStack.decrement(1);
 		}
 		
-		return TypedActionResult.success(itemStack, world.isClient());
+		return ActionResult.SUCCESS;
 	}
 	
 	@Override
@@ -88,23 +88,17 @@ public class IceballItem extends Item implements ProjectileItem {
 	
 	@Override
 	public ProjectileEntity createEntity(World world, Position pos, ItemStack stack, Direction direction) {
-		IceballEntity iceballEntity = new IceballEntity(world, pos, damage, onCollide);
+		IceballEntity iceballEntity = new IceballEntity(world, pos, stack, damage, onCollide);
 		iceballEntity.setItem(stack);
 		return iceballEntity;
 	}
 	
 	public static class Builder {
-		private Item.Settings settings = new Item.Settings().maxCount(16).rarity(Rarity.COMMON);
 		private int damage = 1;
 		private int cooldown = 0;
 		private BiFunction<IceballEntity, HitResult, Boolean> onCollide = (ball, hitResult) -> true;
 		private List<RegistryKey<Enchantment>> primaryEnchants = new ArrayList<>();
 		private List<RegistryKey<Enchantment>> acceptableEnchants = new ArrayList<>();
-		
-		public Builder settings(Item.Settings settings) {
-			this.settings = settings;
-			return this;
-		}
 		
 		public Builder damage(int damage) {
 			this.damage = damage;
@@ -133,8 +127,8 @@ public class IceballItem extends Item implements ProjectileItem {
 			return this;
 		}
 		
-		public IceballItem build() {
-			return new IceballItem(settings, damage, cooldown, onCollide, primaryEnchants, acceptableEnchants);
+		public Function<Item.Settings, IceballItem> build() {
+			return settings -> new IceballItem(settings, damage, cooldown, onCollide, primaryEnchants, acceptableEnchants);
 		}
 	}
 }

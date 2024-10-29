@@ -5,9 +5,7 @@
     "WW"
   ],
   "key": {
-    "W": {
-      "item": "iceball:packed_iceball"
-    }
+    "W": "iceball:packed_iceball"
   },
   "result": {
     "id": "minecraft:packed_ice",

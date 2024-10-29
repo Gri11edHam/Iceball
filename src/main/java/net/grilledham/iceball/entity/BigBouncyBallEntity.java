@@ -16,6 +16,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.predicate.entity.EntityPredicates;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
@@ -68,12 +69,12 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	}
 	
 	@Override
-	public boolean damage(DamageSource source, float amount) {
+	public boolean damage(ServerWorld world, DamageSource source, float amount) {
 		boolean bl;
 		if (this.getWorld().isClient || this.isRemoved()) {
 			return true;
 		}
-		if (this.isInvulnerableTo(source)) {
+		if (this.isAlwaysInvulnerableTo(source)) {
 			return false;
 		}
 		this.setDamageWobbleSide(-this.getDamageWobbleSide());
@@ -83,7 +84,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		this.emitGameEvent(GameEvent.ENTITY_DAMAGE, source.getAttacker());
 		bl = source.getAttacker() instanceof PlayerEntity && ((PlayerEntity)source.getAttacker()).getAbilities().creativeMode;
 		if (!bl && this.getDamageWobbleStrength() > 40.0f || this.shouldAlwaysKill(source)) {
-			this.killAndDropSelf(source);
+			this.killAndDropSelf(world, source);
 		} else if (bl) {
 			this.discard();
 		}
@@ -94,9 +95,9 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		return false;
 	}
 	
-	public void killAndDropItem(Item selfAsItem) {
-		this.kill();
-		if (!this.getWorld().getGameRules().getBoolean(GameRules.DO_ENTITY_DROPS)) {
+	public void killAndDropItem(ServerWorld world, Item selfAsItem) {
+		this.kill(world);
+		if (!world.getGameRules().getBoolean(GameRules.DO_ENTITY_DROPS)) {
 			return;
 		}
 		ItemStack itemStack = new ItemStack(selfAsItem);
@@ -104,7 +105,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		if(getBallColor() != 0xFF88DD88) {
 			itemStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(getBallColor() & 0xFFFFFF, true));
 		}
-		this.dropStack(itemStack);
+		this.dropStack(world, itemStack);
 	}
 	
 	@Override
@@ -164,8 +165,8 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		return (this.dataTracker.get(ANIMATIONS) & 0b00000010) > 0;
 	}
 	
-	protected void killAndDropSelf(DamageSource source) {
-		this.killAndDropItem(this.asItem());
+	protected void killAndDropSelf(ServerWorld world, DamageSource source) {
+		this.killAndDropItem(world, this.asItem());
 	}
 	
 	@Override
@@ -196,15 +197,15 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	@Override
 	protected Vec3d getPassengerAttachmentPos(Entity passenger, EntityDimensions dimensions, float scaleFactor) {
 		if(smallBounceAnimationState.isRunning()) {
-			return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).subtract(0, Math.sin(Math.PI * (smallBounceAnimationState.getTimeRunning() / 250f)) / 4, 0);
+			return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).subtract(0, Math.sin(Math.PI * (smallBounceAnimationState.getTimeInMilliseconds(age) / 250f)) / 4, 0);
 		}
 		if(bigBounceAnimationState.isRunning()) {
-			if(bigBounceAnimationState.getTimeRunning() >= 750) {
+			if(bigBounceAnimationState.getTimeInMilliseconds(age) >= 750) {
 				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor);
-			} else if(bigBounceAnimationState.getTimeRunning() >= 500) {
-				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).add(0, Math.sin(Math.PI * ((bigBounceAnimationState.getTimeRunning() - 500) / 250f)), 0);
+			} else if(bigBounceAnimationState.getTimeInMilliseconds(age) >= 500) {
+				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).add(0, Math.sin(Math.PI * ((bigBounceAnimationState.getTimeInMilliseconds(age) - 500) / 250f)), 0);
 			} else {
-				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).subtract(0, (bigBounceAnimationState.getTimeRunning() / 500f), 0);
+				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).subtract(0, (bigBounceAnimationState.getTimeInMilliseconds(age) / 500f), 0);
 			}
 		}
 		return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor);
@@ -294,7 +295,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		} else {
 			this.setVelocity(Vec3d.ZERO);
 		}
-		this.checkBlockCollision();
+		this.tickBlockCollision();
 		List<Entity> list = this.getWorld().getOtherEntities(this, this.getBoundingBox().expand(0.2f, -0.01f, 0.2f), EntityPredicates.canBePushedBy(this));
 		if (!list.isEmpty()) {
 			boolean bl = !this.getWorld().isClient && !(this.getControllingPassenger() instanceof PlayerEntity);
@@ -311,7 +312,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		if(hasPassengers() && isBigBounce() && (isOnGround() || animationTicks >= 10)) {
 			smallBounceAnimationState.stop();
 			bigBounceAnimationState.startIfNotRunning(age);
-			if(bigBounceAnimationState.getTimeRunning() >= 1000) {
+			if(bigBounceAnimationState.getTimeInMilliseconds(age) >= 1000) {
 				setBigBounce(false);
 			}
 		} else {

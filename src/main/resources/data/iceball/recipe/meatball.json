@@ -6,9 +6,7 @@
     " W "
   ],
   "key": {
-    "W": {
-      "item": "minecraft:beef"
-    }
+    "W": "minecraft:beef"
   },
   "result": {
     "id": "iceball:meatball",

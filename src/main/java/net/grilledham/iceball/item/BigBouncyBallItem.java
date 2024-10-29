@@ -11,8 +11,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.stat.Stats;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Box;
@@ -33,11 +33,11 @@ public class BigBouncyBallItem extends Item {
 	}
 	
 	@Override
-	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+	public ActionResult use(World world, PlayerEntity user, Hand hand) {
 		ItemStack itemStack = user.getStackInHand(hand);
 		BlockHitResult hitResult = BoatItem.raycast(world, user, RaycastContext.FluidHandling.ANY);
 		if (((HitResult)hitResult).getType() == HitResult.Type.MISS) {
-			return TypedActionResult.pass(itemStack);
+			return ActionResult.PASS;
 		}
 		Vec3d vec3d = user.getRotationVec(1.0f);
 		List<Entity> list = world.getOtherEntities(user, user.getBoundingBox().stretch(vec3d.multiply(5.0)).expand(1.0), RIDERS);
@@ -46,7 +46,7 @@ public class BigBouncyBallItem extends Item {
 			for (Entity entity : list) {
 				Box box = entity.getBoundingBox().expand(entity.getTargetingMargin());
 				if (!box.contains(vec3d2)) continue;
-				return TypedActionResult.pass(itemStack);
+				return ActionResult.PASS;
 			}
 		}
 		if (((HitResult)hitResult).getType() == HitResult.Type.BLOCK) {
@@ -54,7 +54,7 @@ public class BigBouncyBallItem extends Item {
 			bigBall.setYaw(user.getYaw());
 			bigBall.setBallColor(DyedColorComponent.getColor(itemStack, 0xFF88DD88));
 			if (!world.isSpaceEmpty(bigBall, bigBall.getBoundingBox())) {
-				return TypedActionResult.fail(itemStack);
+				return ActionResult.FAIL;
 			}
 			if (!world.isClient) {
 				world.spawnEntity(bigBall);
@@ -62,9 +62,9 @@ public class BigBouncyBallItem extends Item {
 				itemStack.decrementUnlessCreative(1, user);
 			}
 			user.incrementStat(Stats.USED.getOrCreateStat(this));
-			return TypedActionResult.success(itemStack, world.isClient());
+			return ActionResult.SUCCESS;
 		}
-		return TypedActionResult.pass(itemStack);
+		return ActionResult.PASS;
 	}
 	
 	private BigBouncyBallEntity createEntity(World world, HitResult hitResult, ItemStack stack, PlayerEntity player) {

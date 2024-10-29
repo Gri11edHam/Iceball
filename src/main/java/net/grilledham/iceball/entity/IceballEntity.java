@@ -12,6 +12,7 @@ import net.minecraft.item.Items;
 import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Position;
@@ -25,14 +26,14 @@ public class IceballEntity extends ThrownItemEntity {
 	private final BiFunction<IceballEntity, HitResult, Boolean> onCollide;
 	public boolean shouldDamageOwner = true;
 	
-	public IceballEntity(World world, LivingEntity owner, int damage, BiFunction<IceballEntity, HitResult, Boolean> onCollide) {
-		super(EntityType.SNOWBALL, owner, world);
+	public IceballEntity(World world, LivingEntity owner, ItemStack stack, int damage, BiFunction<IceballEntity, HitResult, Boolean> onCollide) {
+		super(EntityType.SNOWBALL, owner, world, stack);
 		this.damage = damage;
 		this.onCollide = onCollide;
 	}
 	
-	public IceballEntity(World world, Position pos, int damage, BiFunction<IceballEntity, HitResult, Boolean> onCollide) {
-		super(EntityType.SNOWBALL, pos.getX(), pos.getY(), pos.getZ(), world);
+	public IceballEntity(World world, Position pos, ItemStack stack, int damage, BiFunction<IceballEntity, HitResult, Boolean> onCollide) {
+		super(EntityType.SNOWBALL, pos.getX(), pos.getY(), pos.getZ(), world, stack);
 		this.damage = damage;
 		this.onCollide = onCollide;
 	}
@@ -64,7 +65,9 @@ public class IceballEntity extends ThrownItemEntity {
 			return;
 		}
 		int i = entity instanceof BlazeEntity ? damage + 3 : damage;
-		entity.damage(entity.getWorld().getDamageSources().thrown(this, this.getOwner()), (float)i);
+		if (this.getWorld() instanceof ServerWorld serverWorld) {
+			entity.damage(serverWorld, entity.getWorld().getDamageSources().thrown(this, this.getOwner()), (float)i);
+		}
 	}
 	
 	@Override

@@ -6,12 +6,8 @@
     " W "
   ],
   "key": {
-    "W": {
-      "item": "minecraft:tnt"
-    },
-    "X": {
-      "item": "minecraft:snowball"
-    }
+    "W": "minecraft:tnt",
+    "X": "minecraft:snowball"
   },
   "result": {
     "id": "iceball:boomball",

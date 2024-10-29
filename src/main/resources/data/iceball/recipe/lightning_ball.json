@@ -6,12 +6,8 @@
     " W "
   ],
   "key": {
-    "W": {
-      "item": "minecraft:copper_ingot"
-    },
-    "X": {
-      "item": "minecraft:redstone_block"
-    }
+    "W": "minecraft:copper_ingot",
+    "X": "minecraft:redstone_block"
   },
   "result": {
     "id": "iceball:lightning_ball",

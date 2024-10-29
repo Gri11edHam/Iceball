@@ -3,9 +3,7 @@
   "category": "misc",
   "cookingtime": 200,
   "experience": 0.3,
-  "ingredient": {
-    "item": "minecraft:slime_ball"
-  },
+  "ingredient": "minecraft:slime_ball",
   "result": {
     "id": "iceball:bouncy_ball"
   }
