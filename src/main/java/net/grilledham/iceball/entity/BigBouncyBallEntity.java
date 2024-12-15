@@ -385,7 +385,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	
 	@Override
 	protected void readCustomDataFromNbt(NbtCompound nbt) {
-		this.leashData = this.readLeashDataFromNbt(nbt);
+		this.readLeashDataFromNbt(nbt);
 		if(nbt.contains("Color")) {
 			setBallColor(nbt.getInt("Color"));
 		}

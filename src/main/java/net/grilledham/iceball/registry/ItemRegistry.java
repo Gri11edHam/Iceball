@@ -2,7 +2,6 @@ package net.grilledham.iceball.registry;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.grilledham.iceball.entity.BigBouncyBallEntity;
 import net.grilledham.iceball.item.BigBouncyBallItem;
@@ -214,7 +213,7 @@ public class ItemRegistry {
 				Direction direction = pointer.state().get(DispenserBlock.FACING);
 				BlockPos blockPos = pointer.pos().offset(direction);
 				ServerWorld serverWorld = pointer.world();
-				BigBouncyBallEntity bigBouncyBallEntity = EntityRegistry.BIG_BOUNCY_BALL_ENTITY.spawn(serverWorld, EntityType.copier(bigBouncyBall -> bigBouncyBall.setYaw(direction.asRotation()), serverWorld, stack, null), blockPos, SpawnReason.DISPENSER, false, false);
+				BigBouncyBallEntity bigBouncyBallEntity = EntityRegistry.BIG_BOUNCY_BALL_ENTITY.spawn(serverWorld, EntityType.copier(bigBouncyBall -> bigBouncyBall.setYaw(direction.getPositiveHorizontalDegrees()), serverWorld, stack, null), blockPos, SpawnReason.DISPENSER, false, false);
 				if(bigBouncyBallEntity != null) {
 					bigBouncyBallEntity.setBallColor(DyedColorComponent.getColor(stack, 0xFF88DD88));
 					stack.decrement(1);
@@ -239,9 +238,6 @@ public class ItemRegistry {
 		registerClient(COOKED_MEATBALL_ITEM, new ItemGroupData(ItemGroups.FOOD_AND_DRINK).after(MEATBALL_ITEM));
 		registerClient(BOUNCY_BALL_ITEM, new ItemGroupData(ItemGroups.COMBAT).after(SPIKEBALL_ITEM));
 		registerClient(BIG_BOUNCY_BALL_ITEM, new ItemGroupData(ItemGroups.TOOLS).after(Items.BAMBOO_CHEST_RAFT));
-		
-		ColorProviderRegistry.ITEM.register((stack, tintIndex) -> DyedColorComponent.getColor(stack, 0xFF88DD88), BOUNCY_BALL_ITEM);
-		ColorProviderRegistry.ITEM.register((stack, tintIndex) -> DyedColorComponent.getColor(stack, 0xFF88DD88), BIG_BOUNCY_BALL_ITEM);
 	}
 	
 	private static <T extends Item> T register(String id, Function<Item.Settings, T> factory, Item.Settings settings) {

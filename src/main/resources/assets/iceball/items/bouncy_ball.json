@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "model",
+    "model": "iceball:item/bouncy_ball",
+    "tints": [
+      {
+        "type": "minecraft:dye",
+        "default": -7807608
+      }
+    ]
+  }
+}
