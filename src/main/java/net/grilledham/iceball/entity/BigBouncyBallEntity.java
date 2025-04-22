@@ -48,11 +48,6 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	private int jumpStrength = 0;
 	private int chargingTicks = 0;
 	private int animationTicks = 0;
-	private double x;
-	private double y;
-	private double z;
-	private float ballYaw;
-	private float ballPitch;
 	private int lerpTicks;
 	private Leashable.LeashData leashData;
 	
@@ -63,9 +58,9 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	public BigBouncyBallEntity(World world, double x, double y, double z) {
 		this(EntityRegistry.BIG_BOUNCY_BALL_ENTITY, world);
 		setPosition(x, y, z);
-		prevX = x;
-		prevY = y;
-		prevZ = z;
+		lastX = x;
+		lastY = y;
+		lastZ = z;
 	}
 	
 	@Override
@@ -103,7 +98,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		ItemStack itemStack = new ItemStack(selfAsItem);
 		itemStack.set(DataComponentTypes.CUSTOM_NAME, this.getCustomName());
 		if(getBallColor() != 0xFF88DD88) {
-			itemStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(getBallColor() & 0xFFFFFF, true));
+			itemStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(getBallColor() & 0xFFFFFF));
 		}
 		this.dropStack(world, itemStack);
 	}
@@ -170,16 +165,6 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	}
 	
 	@Override
-	public void updateTrackedPositionAndAngles(double x, double y, double z, float yaw, float pitch, int interpolationSteps) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-		this.ballYaw = yaw;
-		this.ballPitch = pitch;
-		lerpTicks = interpolationSteps;
-	}
-	
-	@Override
 	public boolean collidesWith(Entity other) {
 		return BoatEntity.canCollide(this, other);
 	}
@@ -236,7 +221,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 			if (this.lerpTicks <= 0) {
 				break updatePositionAndRotation;
 			}
-			this.lerpPosAndRotation(this.lerpTicks, this.x, this.y, this.z, this.ballYaw, this.ballPitch);
+			this.lerpPosAndRotation(this.lerpTicks, this.getX(), this.getY(), this.getZ(), this.getYaw(), this.getPitch());
 			--this.lerpTicks;
 		}
 		if (this.isLogicalSideForUpdatingMovement()) {
@@ -330,7 +315,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 				setBigBounce(false);
 			}
 		}
-		Vec3d prevPos = new Vec3d(prevX, 0, prevZ);
+		Vec3d prevPos = new Vec3d(lastX, 0, lastZ);
 		setSmallBounce(prevPos.distanceTo(getPos().multiply(1, 0, 1)) > 0.1 && isOnGround());
 	}
 	
@@ -367,7 +352,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	}
 	
 	@Override
-	public boolean handleFallDamage(float fallDistance, float damageMultiplier, DamageSource damageSource) {
+	public boolean handleFallDamage(double fallDistance, float damageMultiplier, DamageSource damageSource) {
 		return false;
 	}
 	
@@ -387,7 +372,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	protected void readCustomDataFromNbt(NbtCompound nbt) {
 		this.readLeashDataFromNbt(nbt);
 		if(nbt.contains("Color")) {
-			setBallColor(nbt.getInt("Color"));
+			setBallColor(nbt.getInt("Color").orElse(0xFF88DD88));
 		}
 	}
 	

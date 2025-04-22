@@ -28,7 +28,6 @@ public class BigBouncyBallRenderer extends EntityRenderer<BigBouncyBallEntity, B
 	@Override
 	public void render(BigBouncyBallEntityRenderState state, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
 		matrices.push();
-		matrices.translate(0.0f, 1.5f, 0.0f);
 		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0f - state.yaw));
 		float h = state.damageWobbleTicks;
 		float j = state.damageWobbleStrength;

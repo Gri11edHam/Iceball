@@ -20,7 +20,7 @@ public class BigBouncyBallModel extends EntityModel<BigBouncyBallEntityRenderSta
 				.uv(104, 98).cuboid(-12.0F, -26.0F, -14.0F, 24.0F, 24.0F, 2.0F, new Dilation(0.0F))
 				.uv(52, 98).cuboid(-12.0F, -26.0F, 12.0F, 24.0F, 24.0F, 2.0F, new Dilation(0.0F))
 				.uv(0, 74).cuboid(-14.0F, -26.0F, -12.0F, 2.0F, 24.0F, 24.0F, new Dilation(0.0F))
-				.uv(72, 50).cuboid(12.0F, -26.0F, -12.0F, 2.0F, 24.0F, 24.0F, new Dilation(0.0F)), ModelTransform.pivot(0.0F, 24.0F, 0.0F));
+				.uv(72, 50).cuboid(12.0F, -26.0F, -12.0F, 2.0F, 24.0F, 24.0F, new Dilation(0.0F)), ModelTransform.origin(0.0F, 0.0F, 0.0F));
 		return TexturedModelData.of(modelData, 256, 256);
 	}
 	

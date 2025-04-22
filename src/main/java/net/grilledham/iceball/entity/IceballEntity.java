@@ -53,7 +53,7 @@ public class IceballEntity extends ThrownItemEntity {
 		if (status == EntityStatuses.PLAY_DEATH_SOUND_OR_ADD_PROJECTILE_HIT_PARTICLES) {
 			ParticleEffect particleEffect = this.getParticleParameters();
 			for (int i = 0; i < 8; ++i) {
-				this.getWorld().addParticle(particleEffect, this.getX(), this.getY(), this.getZ(), 0.0, 0.0, 0.0);
+				this.getWorld().addParticleClient(particleEffect, this.getX(), this.getY(), this.getZ(), 0.0, 0.0, 0.0);
 			}
 		}
 	}
