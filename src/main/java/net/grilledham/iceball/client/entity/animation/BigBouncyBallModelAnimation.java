@@ -1,12 +1,9 @@
 package net.grilledham.iceball.client.entity.animation;
 
-import net.minecraft.client.render.entity.animation.Animation;
-import net.minecraft.client.render.entity.animation.AnimationHelper;
-import net.minecraft.client.render.entity.animation.Keyframe;
-import net.minecraft.client.render.entity.animation.Transformation;
+import net.minecraft.client.render.entity.animation.*;
 
 public class BigBouncyBallModelAnimation {
-	public static final Animation SMALL_BOUNCE = Animation.Builder.create(0.5F).looping()
+	public static final AnimationDefinition SMALL_BOUNCE = AnimationDefinition.Builder.create(0.5F).looping()
 			.addBoneAnimation("root", new Transformation(Transformation.Targets.MOVE_ORIGIN,
 					new Keyframe(0.25F, AnimationHelper.createTranslationalVector(0.0F, 0.0F, 0.0F), Transformation.Interpolations.LINEAR),
 					new Keyframe(0.375F, AnimationHelper.createTranslationalVector(0.0F, 4.0F, 0.0F), Transformation.Interpolations.LINEAR),
@@ -21,7 +18,7 @@ public class BigBouncyBallModelAnimation {
 			))
 			.build();
 	
-	public static final Animation BIG_BOUNCE = Animation.Builder.create(1.0F)
+	public static final AnimationDefinition BIG_BOUNCE = AnimationDefinition.Builder.create(1.0F)
 			.addBoneAnimation("root", new Transformation(Transformation.Targets.SCALE,
 					new Keyframe(0.0F, AnimationHelper.createScalingVector(1.0F, 1.0F, 1.0F), Transformation.Interpolations.LINEAR),
 					new Keyframe(0.5F, AnimationHelper.createScalingVector(1.8F, 0.4F, 1.8F), Transformation.Interpolations.LINEAR),

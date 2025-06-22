@@ -14,9 +14,10 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
@@ -170,7 +171,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	}
 	
 	@Override
-	public boolean isCollidable() {
+	public boolean isCollidable(@Nullable Entity entity) {
 		return true;
 	}
 	
@@ -369,16 +370,14 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	}
 	
 	@Override
-	protected void readCustomDataFromNbt(NbtCompound nbt) {
-		this.readLeashDataFromNbt(nbt);
-		if(nbt.contains("Color")) {
-			setBallColor(nbt.getInt("Color").orElse(0xFF88DD88));
-		}
+	protected void readCustomData(ReadView nbt) {
+		this.readLeashData(nbt);
+		setBallColor(nbt.getInt("Color", 0xFF88DD88));
 	}
 	
 	@Override
-	protected void writeCustomDataToNbt(NbtCompound nbt) {
-		this.writeLeashDataToNbt(nbt, this.leashData);
+	protected void writeCustomData(WriteView nbt) {
+		this.writeLeashData(nbt, this.leashData);
 		nbt.putInt("Color", getBallColor());
 	}
 	

@@ -3,12 +3,18 @@ package net.grilledham.iceball.client.entity.model;
 import net.grilledham.iceball.client.entity.animation.BigBouncyBallModelAnimation;
 import net.grilledham.iceball.client.entity.state.BigBouncyBallEntityRenderState;
 import net.minecraft.client.model.*;
+import net.minecraft.client.render.entity.animation.Animation;
 import net.minecraft.client.render.entity.model.EntityModel;
 
 public class BigBouncyBallModel extends EntityModel<BigBouncyBallEntityRenderState> {
 	
+	private final Animation smallBounceAnimation;
+	private final Animation bigBounceAnimation;
+	
 	public BigBouncyBallModel(ModelPart root) {
 		super(root);
+		this.smallBounceAnimation = BigBouncyBallModelAnimation.SMALL_BOUNCE.createAnimation(root);
+		this.bigBounceAnimation = BigBouncyBallModelAnimation.BIG_BOUNCE.createAnimation(root);
 	}
 	
 	public static TexturedModelData getTexturedModelData() {
@@ -27,7 +33,7 @@ public class BigBouncyBallModel extends EntityModel<BigBouncyBallEntityRenderSta
 	@Override
 	public void setAngles(BigBouncyBallEntityRenderState state) {
 		root.traverse().forEach(ModelPart::resetTransform);
-		this.animate(state.smallBounceAnimationState, BigBouncyBallModelAnimation.SMALL_BOUNCE, state.age);
-		this.animate(state.bigBounceAnimationState, BigBouncyBallModelAnimation.BIG_BOUNCE, state.age);
+		smallBounceAnimation.apply(state.smallBounceAnimationState, state.age);
+		bigBounceAnimation.apply(state.bigBounceAnimationState, state.age);
 	}
 }
