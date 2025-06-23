@@ -19,23 +19,27 @@ import net.minecraft.util.math.Position;
 import net.minecraft.world.World;
 
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 public class IceballEntity extends ThrownItemEntity {
 	
 	private final int damage;
 	private final BiFunction<IceballEntity, HitResult, Boolean> onCollide;
+	private final Consumer<IceballEntity> onTick;
 	public boolean shouldDamageOwner = true;
 	
-	public IceballEntity(World world, LivingEntity owner, ItemStack stack, int damage, BiFunction<IceballEntity, HitResult, Boolean> onCollide) {
+	public IceballEntity(World world, LivingEntity owner, ItemStack stack, int damage, BiFunction<IceballEntity, HitResult, Boolean> onCollide, Consumer<IceballEntity> onTick) {
 		super(EntityType.SNOWBALL, owner, world, stack);
 		this.damage = damage;
 		this.onCollide = onCollide;
+		this.onTick = onTick;
 	}
 	
-	public IceballEntity(World world, Position pos, ItemStack stack, int damage, BiFunction<IceballEntity, HitResult, Boolean> onCollide) {
+	public IceballEntity(World world, Position pos, ItemStack stack, int damage, BiFunction<IceballEntity, HitResult, Boolean> onCollide, Consumer<IceballEntity> onTick) {
 		super(EntityType.SNOWBALL, pos.getX(), pos.getY(), pos.getZ(), world, stack);
 		this.damage = damage;
 		this.onCollide = onCollide;
+		this.onTick = onTick;
 	}
 	
 	@Override
@@ -56,6 +60,12 @@ public class IceballEntity extends ThrownItemEntity {
 				this.getWorld().addParticleClient(particleEffect, this.getX(), this.getY(), this.getZ(), 0.0, 0.0, 0.0);
 			}
 		}
+	}
+	
+	@Override
+	public void tick() {
+		super.tick();
+		onTick.accept(this);
 	}
 	
 	@Override

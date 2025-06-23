@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class IceballItem extends Item implements ProjectileItem {
@@ -31,14 +32,16 @@ public class IceballItem extends Item implements ProjectileItem {
 	private final int damage;
 	private final int cooldown;
 	private final BiFunction<IceballEntity, HitResult, Boolean> onCollide;
+	private final Consumer<IceballEntity> onTick;
 	private final List<RegistryKey<Enchantment>> primaryEnchants;
 	private final List<RegistryKey<Enchantment>> acceptableEnchants;
 	
-	IceballItem(Item.Settings settings, int damage, int cooldown, BiFunction<IceballEntity, HitResult, Boolean> onCollide, List<RegistryKey<Enchantment>> primaryEnchants, List<RegistryKey<Enchantment>> acceptableEnchants) {
+	IceballItem(Item.Settings settings, int damage, int cooldown, BiFunction<IceballEntity, HitResult, Boolean> onCollide, Consumer<IceballEntity> onTick, List<RegistryKey<Enchantment>> primaryEnchants, List<RegistryKey<Enchantment>> acceptableEnchants) {
 		super(settings);
 		this.damage = damage;
 		this.cooldown = cooldown;
 		this.onCollide = onCollide;
+		this.onTick = onTick;
 		this.primaryEnchants = primaryEnchants;
 		this.acceptableEnchants = acceptableEnchants;
 	}
@@ -49,7 +52,7 @@ public class IceballItem extends Item implements ProjectileItem {
 		world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_SNOWBALL_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (world.getRandom().nextFloat() * 0.4F + 0.8F));
 		user.getItemCooldownManager().set(itemStack, cooldown);
 		if (!world.isClient) {
-			IceballEntity iceballEntity = new IceballEntity(world, user, itemStack, damage, onCollide);
+			IceballEntity iceballEntity = new IceballEntity(world, user, itemStack, damage, onCollide, onTick);
 			iceballEntity.setItem(itemStack);
 			iceballEntity.setVelocity(user, user.getPitch(), user.getYaw(), 0.0F, 1.5F, 1.0F);
 			world.spawnEntity(iceballEntity);
@@ -88,7 +91,7 @@ public class IceballItem extends Item implements ProjectileItem {
 	
 	@Override
 	public ProjectileEntity createEntity(World world, Position pos, ItemStack stack, Direction direction) {
-		IceballEntity iceballEntity = new IceballEntity(world, pos, stack, damage, onCollide);
+		IceballEntity iceballEntity = new IceballEntity(world, pos, stack, damage, onCollide, onTick);
 		iceballEntity.setItem(stack);
 		return iceballEntity;
 	}
@@ -97,6 +100,7 @@ public class IceballItem extends Item implements ProjectileItem {
 		private int damage = 1;
 		private int cooldown = 0;
 		private BiFunction<IceballEntity, HitResult, Boolean> onCollide = (ball, hitResult) -> true;
+		private Consumer<IceballEntity> onTick = (ball) -> {};
 		private List<RegistryKey<Enchantment>> primaryEnchants = new ArrayList<>();
 		private List<RegistryKey<Enchantment>> acceptableEnchants = new ArrayList<>();
 		
@@ -115,6 +119,11 @@ public class IceballItem extends Item implements ProjectileItem {
 			return this;
 		}
 		
+		public Builder onTick(Consumer<IceballEntity> onTick) {
+			this.onTick = onTick;
+			return this;
+		}
+		
 		@SafeVarargs
 		public final Builder primaryEnchants(RegistryKey<Enchantment>... enchants) {
 			this.primaryEnchants = Arrays.asList(enchants);
@@ -128,7 +137,7 @@ public class IceballItem extends Item implements ProjectileItem {
 		}
 		
 		public Function<Item.Settings, IceballItem> build() {
-			return settings -> new IceballItem(settings, damage, cooldown, onCollide, primaryEnchants, acceptableEnchants);
+			return settings -> new IceballItem(settings, damage, cooldown, onCollide, onTick, primaryEnchants, acceptableEnchants);
 		}
 	}
 }

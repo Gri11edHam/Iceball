@@ -96,9 +96,18 @@ public class ItemRegistry {
 						return true;
 					}
 				}
-				Vec3d direction = ball.getOwner().getPos().subtract(ball.getPos()).normalize().add(0, 0.2, 0);
-				ball.setVelocity(direction.getX(), direction.getY(), direction.getZ(), 1f, 0);
+				if(hitResult instanceof BlockHitResult bhr) {
+					Vec3d velocity = ball.getVelocity().add(ball.getVelocity().multiply(new Vec3d(bhr.getSide().getUnitVector().absolute().mul(-1.9f))));
+					ball.setVelocity(velocity.getX(), velocity.getY(), velocity.getZ(), (float)(ball.getVelocity().length()), 0);
+				}
 				return false;
+			})
+			.onTick(ball -> {
+				ball.shouldDamageOwner = false;
+				if(ball.getOwner() != null) {
+					Vec3d direction = ball.getOwner().getPos().subtract(ball.getPos()).normalize();
+					ball.addVelocity(direction.getX() * 0.1, direction.getY() * 0.1, direction.getZ() * 0.1);
+				}
 			})
 			.build(),
 			new Item.Settings().maxCount(1).rarity(Rarity.EPIC).maxDamage(100)
