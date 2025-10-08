@@ -3,10 +3,10 @@ package net.grilledham.iceball.registry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.grilledham.iceball.client.entity.model.BigBouncyBallModel;
 import net.grilledham.iceball.client.entity.renderer.BigBouncyBallRenderer;
 import net.grilledham.iceball.entity.BigBouncyBallEntity;
+import net.minecraft.client.render.entity.EntityRendererFactories;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -35,7 +35,7 @@ public class EntityRegistry {
 	@Environment(EnvType.CLIENT)
 	public static void initClient() {
 		BIG_BOUNCY_BALL_MODEL_LAYER = new EntityModelLayer(Identifier.of("iceball", "big_bouncy_ball"), "main");
-		EntityRendererRegistry.register(BIG_BOUNCY_BALL_ENTITY, BigBouncyBallRenderer::new);
+		EntityRendererFactories.register(BIG_BOUNCY_BALL_ENTITY, BigBouncyBallRenderer::new);
 		
 		EntityModelLayerRegistry.registerModelLayer(BIG_BOUNCY_BALL_MODEL_LAYER, BigBouncyBallModel::getTexturedModelData);
 	}

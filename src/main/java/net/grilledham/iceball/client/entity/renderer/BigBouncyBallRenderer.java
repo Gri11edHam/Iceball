@@ -5,10 +5,10 @@ import net.grilledham.iceball.client.entity.state.BigBouncyBallEntityRenderState
 import net.grilledham.iceball.entity.BigBouncyBallEntity;
 import net.grilledham.iceball.registry.EntityRegistry;
 import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
+import net.minecraft.client.render.state.CameraRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
@@ -26,21 +26,19 @@ public class BigBouncyBallRenderer extends EntityRenderer<BigBouncyBallEntity, B
 	}
 	
 	@Override
-	public void render(BigBouncyBallEntityRenderState state, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
+	public void render(BigBouncyBallEntityRenderState renderState, MatrixStack matrices, OrderedRenderCommandQueue queue, CameraRenderState cameraState) {
 		matrices.push();
-		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0f - state.yaw));
-		float h = state.damageWobbleTicks;
-		float j = state.damageWobbleStrength;
+		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0f - renderState.yaw));
+		float h = renderState.damageWobbleTicks;
+		float j = renderState.damageWobbleStrength;
 		if (h > 0.0f) {
-			matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(MathHelper.sin(h) * h * j / 10.0f * state.damageWobbleSide));
+			matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(MathHelper.sin(h) * h * j / 10.0f * renderState.damageWobbleSide));
 		}
 		matrices.scale(-1.0f, -1.0f, 1.0f);
 		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(90.0f));
-		model.setAngles(state);
-		VertexConsumer vertexConsumer = vertexConsumers.getBuffer(model.getLayer(texture));
-		model.render(matrices, vertexConsumer, light, OverlayTexture.DEFAULT_UV, state.ballColor);
+		queue.submitModel(model, renderState, matrices, model.getLayer(texture), renderState.light, OverlayTexture.DEFAULT_UV, renderState.ballColor, null, renderState.outlineColor, null);
 		matrices.pop();
-		super.render(state, matrices, vertexConsumers, light);
+		super.render(renderState, matrices, queue, cameraState);
 	}
 	
 	@Override

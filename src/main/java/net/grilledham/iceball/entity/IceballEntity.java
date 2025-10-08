@@ -57,7 +57,7 @@ public class IceballEntity extends ThrownItemEntity {
 		if (status == EntityStatuses.PLAY_DEATH_SOUND_OR_ADD_PROJECTILE_HIT_PARTICLES) {
 			ParticleEffect particleEffect = this.getParticleParameters();
 			for (int i = 0; i < 8; ++i) {
-				this.getWorld().addParticleClient(particleEffect, this.getX(), this.getY(), this.getZ(), 0.0, 0.0, 0.0);
+				this.getEntityWorld().addParticleClient(particleEffect, this.getX(), this.getY(), this.getZ(), 0.0, 0.0, 0.0);
 			}
 		}
 	}
@@ -75,8 +75,8 @@ public class IceballEntity extends ThrownItemEntity {
 			return;
 		}
 		int i = entity instanceof BlazeEntity ? damage + 3 : damage;
-		if (this.getWorld() instanceof ServerWorld serverWorld) {
-			entity.damage(serverWorld, entity.getWorld().getDamageSources().thrown(this, this.getOwner()), (float)i);
+		if (this.getEntityWorld() instanceof ServerWorld serverWorld) {
+			entity.damage(serverWorld, entity.getEntityWorld().getDamageSources().thrown(this, this.getOwner()), (float)i);
 		}
 	}
 	
@@ -84,8 +84,8 @@ public class IceballEntity extends ThrownItemEntity {
 	protected void onCollision(HitResult hitResult) {
 		super.onCollision(hitResult);
 		if(onCollide.apply(this, hitResult)) {
-			if (!this.getWorld().isClient) {
-				this.getWorld().sendEntityStatus(this, EntityStatuses.PLAY_DEATH_SOUND_OR_ADD_PROJECTILE_HIT_PARTICLES);
+			if (!this.getEntityWorld().isClient()) {
+				this.getEntityWorld().sendEntityStatus(this, EntityStatuses.PLAY_DEATH_SOUND_OR_ADD_PROJECTILE_HIT_PARTICLES);
 				this.discard();
 			}
 		}

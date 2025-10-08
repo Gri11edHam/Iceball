@@ -51,7 +51,7 @@ public class IceballItem extends Item implements ProjectileItem {
 		ItemStack itemStack = user.getStackInHand(hand);
 		world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_SNOWBALL_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (world.getRandom().nextFloat() * 0.4F + 0.8F));
 		user.getItemCooldownManager().set(itemStack, cooldown);
-		if (!world.isClient) {
+		if (!world.isClient()) {
 			IceballEntity iceballEntity = new IceballEntity(world, user, itemStack, damage, onCollide, onTick);
 			iceballEntity.setItem(itemStack);
 			iceballEntity.setVelocity(user, user.getPitch(), user.getYaw(), 0.0F, 1.5F, 1.0F);

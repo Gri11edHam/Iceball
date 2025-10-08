@@ -61,7 +61,7 @@ public class ItemRegistry {
 			.damage(0)
 			.cooldown(20)
 			.onCollide((ball, hitResult) -> {
-				ball.getWorld().createExplosion(ball, ball.getDamageSources().explosion(ball, ball.getOwner()), new ExplosionBehavior(), ball.getPos(), 8, false, World.ExplosionSourceType.MOB);
+				ball.getEntityWorld().createExplosion(ball, ball.getDamageSources().explosion(ball, ball.getOwner()), new ExplosionBehavior(), ball.getEntityPos(), 8, false, World.ExplosionSourceType.MOB);
 				return true;
 			})
 			.build(),
@@ -74,7 +74,7 @@ public class ItemRegistry {
 			.onCollide((ball, hitResult) -> {
 				ball.shouldDamageOwner = false;
 				if(ball.getOwner() == null) {
-					if(ball.getWorld() instanceof ServerWorld world) {
+					if(ball.getEntityWorld() instanceof ServerWorld world) {
 						ball.dropStack(world, ball.getStack());
 					}
 					return true;
@@ -82,7 +82,7 @@ public class ItemRegistry {
 				if(hitResult.getType() == HitResult.Type.ENTITY) {
 					EntityHitResult ehr = (EntityHitResult)hitResult;
 					if(ehr.getEntity() == ball.getOwner()) {
-						if(ball.getWorld() instanceof ServerWorld world) {
+						if(ball.getEntityWorld() instanceof ServerWorld world) {
 							if(ball.getOwner().isPlayer()) {
 								PlayerEntity owner = (PlayerEntity)ball.getOwner();
 								if(!owner.isInCreativeMode()) {
@@ -105,7 +105,7 @@ public class ItemRegistry {
 			.onTick(ball -> {
 				ball.shouldDamageOwner = false;
 				if(ball.getOwner() != null) {
-					Vec3d direction = ball.getOwner().getPos().subtract(ball.getPos()).normalize();
+					Vec3d direction = ball.getOwner().getEntityPos().subtract(ball.getEntityPos()).normalize();
 					ball.addVelocity(direction.getX() * 0.1, direction.getY() * 0.1, direction.getZ() * 0.1);
 				}
 			})
@@ -122,7 +122,7 @@ public class ItemRegistry {
 					Vec3d velocity = ball.getVelocity().add(ball.getVelocity().multiply(new Vec3d(bhr.getSide().getUnitVector().absolute().mul(-1.7f))));
 					ball.setVelocity(velocity.getX(), velocity.getY(), velocity.getZ(), (float)(ball.getVelocity().length() * 0.8), 0);
 				} else if(hitResult instanceof EntityHitResult) {
-					if(ball.getWorld() instanceof ServerWorld world) {
+					if(ball.getEntityWorld() instanceof ServerWorld world) {
 						if(ball.getOwner() != null) {
 							if(ball.getOwner().isPlayer()) {
 								PlayerEntity owner = (PlayerEntity)ball.getOwner();
@@ -137,7 +137,7 @@ public class ItemRegistry {
 					return true;
 				}
 				if(ball.getVelocity().length() < 0.1) {
-					if(ball.getWorld() instanceof ServerWorld world) {
+					if(ball.getEntityWorld() instanceof ServerWorld world) {
 						if(ball.getOwner() != null) {
 							if(ball.getOwner().isPlayer()) {
 								PlayerEntity owner = (PlayerEntity)ball.getOwner();
@@ -161,7 +161,7 @@ public class ItemRegistry {
 			.damage(1)
 			.cooldown(0)
 			.onCollide((ball, hitResult) -> {
-				if(ball.getWorld() instanceof ServerWorld world) {
+				if(ball.getEntityWorld() instanceof ServerWorld world) {
 					if(ball.getOwner() != null) {
 						if(ball.getOwner().isPlayer()) {
 							PlayerEntity owner = (PlayerEntity)ball.getOwner();
@@ -182,25 +182,25 @@ public class ItemRegistry {
 			.damage(0)
 			.cooldown(5)
 			.onCollide((ball, hitResult) -> {
-				LightningEntity lightning = new LightningEntity(EntityType.LIGHTNING_BOLT, ball.getWorld());
-				lightning.setPosition(ball.getPos());
-				ball.getWorld().spawnEntity(lightning);
-				if(!ball.getWorld().isClient) {
+				LightningEntity lightning = new LightningEntity(EntityType.LIGHTNING_BOLT, ball.getEntityWorld());
+				lightning.setPosition(ball.getEntityPos());
+				ball.getEntityWorld().spawnEntity(lightning);
+				if(!ball.getEntityWorld().isClient()) {
 					if(ball.getOwner() != null) {
 						if(ball.getOwner().isPlayer()) {
 							PlayerEntity owner = (PlayerEntity)ball.getOwner();
 							if(!owner.isInCreativeMode()) {
-								ItemEntity itemEntity = new ItemEntity(ball.getWorld(), ball.getX(), ball.getY(), ball.getZ(), ball.getStack().withItem(LIGHTNING_BALL_ITEM));
+								ItemEntity itemEntity = new ItemEntity(ball.getEntityWorld(), ball.getX(), ball.getY(), ball.getZ(), ball.getStack().withItem(LIGHTNING_BALL_ITEM));
 								itemEntity.setInvulnerable(true);
 								itemEntity.setToDefaultPickupDelay();
-								ball.getWorld().spawnEntity(itemEntity);
+								ball.getEntityWorld().spawnEntity(itemEntity);
 							}
 						}
 					} else {
-						ItemEntity itemEntity = new ItemEntity(ball.getWorld(), ball.getX(), ball.getY(), ball.getZ(), ball.getStack().withItem(LIGHTNING_BALL_ITEM));
+						ItemEntity itemEntity = new ItemEntity(ball.getEntityWorld(), ball.getX(), ball.getY(), ball.getZ(), ball.getStack().withItem(LIGHTNING_BALL_ITEM));
 						itemEntity.setInvulnerable(true);
 						itemEntity.setToDefaultPickupDelay();
-						ball.getWorld().spawnEntity(itemEntity);
+						ball.getEntityWorld().spawnEntity(itemEntity);
 					}
 				}
 				return true;

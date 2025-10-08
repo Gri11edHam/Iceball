@@ -56,7 +56,7 @@ public class BigBouncyBallItem extends Item {
 			if (!world.isSpaceEmpty(bigBall, bigBall.getBoundingBox())) {
 				return ActionResult.FAIL;
 			}
-			if (!world.isClient) {
+			if (!world.isClient()) {
 				world.spawnEntity(bigBall);
 				world.emitGameEvent(user, GameEvent.ENTITY_PLACE, hitResult.getPos());
 				itemStack.decrementUnlessCreative(1, user);

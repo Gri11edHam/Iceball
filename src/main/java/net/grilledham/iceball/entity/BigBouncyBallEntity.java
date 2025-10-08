@@ -67,7 +67,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	@Override
 	public boolean damage(ServerWorld world, DamageSource source, float amount) {
 		boolean bl;
-		if (this.getWorld().isClient || this.isRemoved()) {
+		if (this.getEntityWorld().isClient() || this.isRemoved()) {
 			return true;
 		}
 		if (this.isAlwaysInvulnerableTo(source)) {
@@ -282,9 +282,9 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 			this.setVelocity(Vec3d.ZERO);
 		}
 		this.tickBlockCollision();
-		List<Entity> list = this.getWorld().getOtherEntities(this, this.getBoundingBox().expand(0.2f, -0.01f, 0.2f), EntityPredicates.canBePushedBy(this));
+		List<Entity> list = this.getEntityWorld().getOtherEntities(this, this.getBoundingBox().expand(0.2f, -0.01f, 0.2f), EntityPredicates.canBePushedBy(this));
 		if (!list.isEmpty()) {
-			boolean bl = !this.getWorld().isClient && !(this.getControllingPassenger() instanceof PlayerEntity);
+			boolean bl = !this.getEntityWorld().isClient() && !(this.getControllingPassenger() instanceof PlayerEntity);
 			for (Entity entity : list) {
 				if (entity.hasPassenger(this)) continue;
 				if (bl && this.getPassengerList().isEmpty() && !entity.hasVehicle() && entity instanceof LivingEntity && !(entity instanceof WaterCreatureEntity) && !(entity instanceof PlayerEntity)) {
@@ -317,7 +317,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 			}
 		}
 		Vec3d prevPos = new Vec3d(lastX, 0, lastZ);
-		setSmallBounce(prevPos.distanceTo(getPos().multiply(1, 0, 1)) > 0.1 && isOnGround());
+		setSmallBounce(prevPos.distanceTo(getEntityPos().multiply(1, 0, 1)) > 0.1 && isOnGround());
 	}
 	
 	public void setInputs(boolean moveForward, boolean moveBack, boolean moveLeft, boolean moveRight) {
@@ -336,7 +336,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		if (player.shouldCancelInteraction()) {
 			return ActionResult.PASS;
 		}
-		if (!this.getWorld().isClient) {
+		if (!this.getEntityWorld().isClient()) {
 			return player.startRiding(this) ? ActionResult.CONSUME : ActionResult.PASS;
 		}
 		return ActionResult.PASS;
