@@ -21,9 +21,9 @@ import net.minecraft.storage.WriteView;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
+import net.minecraft.world.rule.GameRules;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -93,7 +93,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	
 	public void killAndDropItem(ServerWorld world, Item selfAsItem) {
 		this.kill(world);
-		if (!world.getGameRules().getBoolean(GameRules.DO_ENTITY_DROPS)) {
+		if (!world.getGameRules().getValue(GameRules.ENTITY_DROPS)) {
 			return;
 		}
 		ItemStack itemStack = new ItemStack(selfAsItem);
