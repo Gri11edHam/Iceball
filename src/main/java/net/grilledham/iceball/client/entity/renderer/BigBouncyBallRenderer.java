@@ -1,44 +1,44 @@
 package net.grilledham.iceball.client.entity.renderer;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import net.grilledham.iceball.client.entity.model.BigBouncyBallModel;
 import net.grilledham.iceball.client.entity.state.BigBouncyBallEntityRenderState;
 import net.grilledham.iceball.entity.BigBouncyBallEntity;
 import net.grilledham.iceball.registry.EntityRegistry;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.command.OrderedRenderCommandQueue;
-import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.render.state.CameraRenderState;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 
 public class BigBouncyBallRenderer extends EntityRenderer<BigBouncyBallEntity, BigBouncyBallEntityRenderState> {
 	
 	private final Identifier texture;
 	private final BigBouncyBallModel model;
 	
-	public BigBouncyBallRenderer(EntityRendererFactory.Context ctx) {
+	public BigBouncyBallRenderer(EntityRendererProvider.Context ctx) {
 		super(ctx);
-		texture = Identifier.of("iceball", "textures/entity/big_bouncy_ball.png");
-		model = new BigBouncyBallModel(ctx.getPart(EntityRegistry.BIG_BOUNCY_BALL_MODEL_LAYER));
+		texture = Identifier.fromNamespaceAndPath("iceball", "textures/entity/big_bouncy_ball.png");
+		model = new BigBouncyBallModel(ctx.bakeLayer(EntityRegistry.BIG_BOUNCY_BALL_MODEL_LAYER));
 	}
 	
 	@Override
-	public void render(BigBouncyBallEntityRenderState renderState, MatrixStack matrices, OrderedRenderCommandQueue queue, CameraRenderState cameraState) {
-		matrices.push();
-		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0f - renderState.yaw));
+	public void submit(BigBouncyBallEntityRenderState renderState, PoseStack matrices, SubmitNodeCollector queue, CameraRenderState cameraState) {
+		matrices.pushPose();
+		matrices.mulPose(Axis.YP.rotationDegrees(180.0f - renderState.yaw));
 		float h = renderState.damageWobbleTicks;
 		float j = renderState.damageWobbleStrength;
 		if (h > 0.0f) {
-			matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(MathHelper.sin(h) * h * j / 10.0f * renderState.damageWobbleSide));
+			matrices.mulPose(Axis.XP.rotationDegrees(Mth.sin(h) * h * j / 10.0f * renderState.damageWobbleSide));
 		}
 		matrices.scale(-1.0f, -1.0f, 1.0f);
-		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(90.0f));
-		queue.submitModel(model, renderState, matrices, model.getLayer(texture), renderState.light, OverlayTexture.DEFAULT_UV, renderState.ballColor, null, renderState.outlineColor, null);
-		matrices.pop();
-		super.render(renderState, matrices, queue, cameraState);
+		matrices.mulPose(Axis.YP.rotationDegrees(90.0f));
+		queue.submitModel(model, renderState, matrices, model.renderType(texture), renderState.lightCoords, OverlayTexture.NO_OVERLAY, renderState.ballColor, null, renderState.outlineColor, null);
+		matrices.popPose();
+		super.submit(renderState, matrices, queue, cameraState);
 	}
 	
 	@Override
@@ -47,9 +47,9 @@ public class BigBouncyBallRenderer extends EntityRenderer<BigBouncyBallEntity, B
 	}
 	
 	@Override
-	public void updateRenderState(BigBouncyBallEntity entity, BigBouncyBallEntityRenderState state, float tickDelta) {
-		super.updateRenderState(entity, state, tickDelta);
-		state.yaw = entity.getYaw(tickDelta);
+	public void extractRenderState(BigBouncyBallEntity entity, BigBouncyBallEntityRenderState state, float tickDelta) {
+		super.extractRenderState(entity, state, tickDelta);
+		state.yaw = entity.getYRot(tickDelta);
 		state.damageWobbleTicks = entity.getDamageWobbleTicks() - tickDelta;
 		state.damageWobbleStrength = Math.max(entity.getDamageWobbleStrength() - tickDelta, 0);
 		state.damageWobbleSide = entity.getDamageWobbleSide();

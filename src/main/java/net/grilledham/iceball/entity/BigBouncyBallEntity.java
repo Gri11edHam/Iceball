@@ -2,41 +2,36 @@ package net.grilledham.iceball.entity;
 
 import net.grilledham.iceball.registry.EntityRegistry;
 import net.grilledham.iceball.registry.ItemRegistry;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.DyedColorComponent;
-import net.minecraft.entity.*;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.mob.WaterCreatureEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.vehicle.BoatEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.predicate.entity.EntityPredicates;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
-import net.minecraft.world.rule.GameRules;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.VehicleEntity;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.DyedItemColor;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMount {
+public class BigBouncyBallEntity extends VehicleEntity implements Leashable, PlayerRideableJumping {
 	
 	private static final double SQRT_2 = Math.sqrt(2);
 	
-	protected static final TrackedData<Integer> DAMAGE_WOBBLE_TICKS = DataTracker.registerData(BigBouncyBallEntity.class, TrackedDataHandlerRegistry.INTEGER);
-	protected static final TrackedData<Integer> DAMAGE_WOBBLE_SIDE = DataTracker.registerData(BigBouncyBallEntity.class, TrackedDataHandlerRegistry.INTEGER);
-	protected static final TrackedData<Float> DAMAGE_WOBBLE_STRENGTH = DataTracker.registerData(BigBouncyBallEntity.class, TrackedDataHandlerRegistry.FLOAT);
-	protected static final TrackedData<Integer> BALL_COLOR = DataTracker.registerData(BigBouncyBallEntity.class, TrackedDataHandlerRegistry.INTEGER);
-	protected static final TrackedData<Byte> ANIMATIONS = DataTracker.registerData(BigBouncyBallEntity.class, TrackedDataHandlerRegistry.BYTE);
+	protected static final EntityDataAccessor<Integer> BALL_COLOR = SynchedEntityData.defineId(BigBouncyBallEntity.class, EntityDataSerializers.INT);
+	protected static final EntityDataAccessor<Byte> ANIMATIONS = SynchedEntityData.defineId(BigBouncyBallEntity.class, EntityDataSerializers.BYTE);
 	
 	public final AnimationState smallBounceAnimationState = new AnimationState();
 	public final AnimationState bigBounceAnimationState = new AnimationState();
@@ -52,126 +47,98 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	private int lerpTicks;
 	private Leashable.LeashData leashData;
 	
-	public BigBouncyBallEntity(EntityType<? extends BigBouncyBallEntity> type, World world) {
+	public BigBouncyBallEntity(EntityType<? extends BigBouncyBallEntity> type, Level world) {
 		super(type, world);
 	}
 	
-	public BigBouncyBallEntity(World world, double x, double y, double z) {
+	public BigBouncyBallEntity(Level world, double x, double y, double z) {
 		this(EntityRegistry.BIG_BOUNCY_BALL_ENTITY, world);
-		setPosition(x, y, z);
-		lastX = x;
-		lastY = y;
-		lastZ = z;
+		setPos(x, y, z);
+		xOld = x;
+		yOld = y;
+		zOld = z;
 	}
 	
-	@Override
-	public boolean damage(ServerWorld world, DamageSource source, float amount) {
-		boolean bl;
-		if (this.getEntityWorld().isClient() || this.isRemoved()) {
-			return true;
-		}
-		if (this.isAlwaysInvulnerableTo(source)) {
-			return false;
-		}
-		this.setDamageWobbleSide(-this.getDamageWobbleSide());
-		this.setDamageWobbleTicks(10);
-		this.scheduleVelocityUpdate();
-		this.setDamageWobbleStrength(this.getDamageWobbleStrength() + amount * 10.0f);
-		this.emitGameEvent(GameEvent.ENTITY_DAMAGE, source.getAttacker());
-		bl = source.getAttacker() instanceof PlayerEntity && ((PlayerEntity)source.getAttacker()).getAbilities().creativeMode;
-		if (!bl && this.getDamageWobbleStrength() > 40.0f || this.shouldAlwaysKill(source)) {
-			this.killAndDropSelf(world, source);
-		} else if (bl) {
-			this.discard();
-		}
-		return true;
-	}
-	
-	boolean shouldAlwaysKill(DamageSource source) {
-		return false;
-	}
-	
-	public void killAndDropItem(ServerWorld world, Item selfAsItem) {
+	public void destroy(ServerLevel world, Item selfAsItem) {
 		this.kill(world);
-		if (!world.getGameRules().getValue(GameRules.ENTITY_DROPS)) {
+		if (!world.getGameRules().get(GameRules.ENTITY_DROPS)) {
 			return;
 		}
 		ItemStack itemStack = new ItemStack(selfAsItem);
-		itemStack.set(DataComponentTypes.CUSTOM_NAME, this.getCustomName());
+		itemStack.set(DataComponents.CUSTOM_NAME, this.getCustomName());
 		if(getBallColor() != 0xFF88DD88) {
-			itemStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(getBallColor() & 0xFFFFFF));
+			itemStack.set(DataComponents.DYED_COLOR, new DyedItemColor(getBallColor() & 0xFFFFFF));
 		}
-		this.dropStack(world, itemStack);
+		this.spawnAtLocation(world, itemStack);
 	}
 	
 	@Override
-	protected void initDataTracker(DataTracker.Builder builder) {
-		builder.add(DAMAGE_WOBBLE_TICKS, 0);
-		builder.add(DAMAGE_WOBBLE_SIDE, 1);
-		builder.add(DAMAGE_WOBBLE_STRENGTH, 0.0f);
-		builder.add(BALL_COLOR, 0xFF88DD88);
-		builder.add(ANIMATIONS, (byte)0);
+	protected Item getDropItem() {
+		return ItemRegistry.BIG_BOUNCY_BALL_ITEM;
+	}
+	
+	@Override
+	protected void defineSynchedData(SynchedEntityData.Builder builder) {
+		super.defineSynchedData(builder);
+		builder.define(BALL_COLOR, 0xFF88DD88);
+		builder.define(ANIMATIONS, (byte)0);
 	}
 	
 	public void setDamageWobbleTicks(int damageWobbleTicks) {
-		this.dataTracker.set(DAMAGE_WOBBLE_TICKS, damageWobbleTicks);
+		this.entityData.set(DATA_ID_HURT, damageWobbleTicks);
 	}
 	
 	public void setDamageWobbleSide(int damageWobbleSide) {
-		this.dataTracker.set(DAMAGE_WOBBLE_SIDE, damageWobbleSide);
+		this.entityData.set(DATA_ID_HURTDIR, damageWobbleSide);
 	}
 	
 	public void setDamageWobbleStrength(float damageWobbleStrength) {
-		this.dataTracker.set(DAMAGE_WOBBLE_STRENGTH, damageWobbleStrength);
+		this.entityData.set(DATA_ID_DAMAGE, damageWobbleStrength);
 	}
 	
 	public void setSmallBounce(boolean smallBounce) {
 		if(smallBounce) {
-			this.dataTracker.set(ANIMATIONS, (byte)(this.dataTracker.get(ANIMATIONS) | 0b00000001));
+			this.entityData.set(ANIMATIONS, (byte)(this.entityData.get(ANIMATIONS) | 0b00000001));
 		} else {
-			this.dataTracker.set(ANIMATIONS, (byte)(this.dataTracker.get(ANIMATIONS) & 0b00000010));
+			this.entityData.set(ANIMATIONS, (byte)(this.entityData.get(ANIMATIONS) & 0b00000010));
 		}
 	}
 	
 	public void setBigBounce(boolean bigBounce) {
 		if(bigBounce) {
-			this.dataTracker.set(ANIMATIONS, (byte)(this.dataTracker.get(ANIMATIONS) | 0b00000010));
+			this.entityData.set(ANIMATIONS, (byte)(this.entityData.get(ANIMATIONS) | 0b00000010));
 		} else {
-			this.dataTracker.set(ANIMATIONS, (byte)(this.dataTracker.get(ANIMATIONS) & 0b00000001));
+			this.entityData.set(ANIMATIONS, (byte)(this.entityData.get(ANIMATIONS) & 0b00000001));
 		}
 	}
 	
 	public float getDamageWobbleStrength() {
-		return this.dataTracker.get(DAMAGE_WOBBLE_STRENGTH);
+		return this.entityData.get(DATA_ID_DAMAGE);
 	}
 	
 	public int getDamageWobbleTicks() {
-		return this.dataTracker.get(DAMAGE_WOBBLE_TICKS);
+		return this.entityData.get(DATA_ID_HURT);
 	}
 	
 	public int getDamageWobbleSide() {
-		return this.dataTracker.get(DAMAGE_WOBBLE_SIDE);
+		return this.entityData.get(DATA_ID_HURTDIR);
 	}
 	
 	public boolean isSmallBounce() {
-		return (this.dataTracker.get(ANIMATIONS) & 0b00000001) > 0;
+		return (this.entityData.get(ANIMATIONS) & 0b00000001) > 0;
 	}
 	
 	public boolean isBigBounce() {
-		return (this.dataTracker.get(ANIMATIONS) & 0b00000010) > 0;
-	}
-	
-	protected void killAndDropSelf(ServerWorld world, DamageSource source) {
-		this.killAndDropItem(world, this.asItem());
+		return (this.entityData.get(ANIMATIONS) & 0b00000010) > 0;
 	}
 	
 	@Override
-	public boolean collidesWith(Entity other) {
-		return BoatEntity.canCollide(this, other);
+	public boolean canCollideWith(Entity entity) {
+		return Boat.canVehicleCollide(this, entity);
 	}
 	
 	@Override
-	public boolean isCollidable(@Nullable Entity entity) {
+	public boolean canBeCollidedWith(@Nullable Entity entity) {
 		return true;
 	}
 	
@@ -181,31 +148,31 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	}
 	
 	@Override
-	protected Vec3d getPassengerAttachmentPos(Entity passenger, EntityDimensions dimensions, float scaleFactor) {
-		if(smallBounceAnimationState.isRunning()) {
-			return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).subtract(0, Math.sin(Math.PI * (smallBounceAnimationState.getTimeInMilliseconds(age) / 250f)) / 4, 0);
+	protected Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scaleFactor) {
+		if(smallBounceAnimationState.isStarted()) {
+			return super.getPassengerAttachmentPoint(passenger, dimensions, scaleFactor).subtract(0, Math.sin(Math.PI * (smallBounceAnimationState.getTimeInMillis(tickCount) / 250f)) / 4, 0);
 		}
-		if(bigBounceAnimationState.isRunning()) {
-			if(bigBounceAnimationState.getTimeInMilliseconds(age) >= 750) {
-				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor);
-			} else if(bigBounceAnimationState.getTimeInMilliseconds(age) >= 500) {
-				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).add(0, Math.sin(Math.PI * ((bigBounceAnimationState.getTimeInMilliseconds(age) - 500) / 250f)), 0);
+		if(bigBounceAnimationState.isStarted()) {
+			if(bigBounceAnimationState.getTimeInMillis(tickCount) >= 750) {
+				return super.getPassengerAttachmentPoint(passenger, dimensions, scaleFactor);
+			} else if(bigBounceAnimationState.getTimeInMillis(tickCount) >= 500) {
+				return super.getPassengerAttachmentPoint(passenger, dimensions, scaleFactor).add(0, Math.sin(Math.PI * ((bigBounceAnimationState.getTimeInMillis(tickCount) - 500) / 250f)), 0);
 			} else {
-				return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor).subtract(0, (bigBounceAnimationState.getTimeInMilliseconds(age) / 500f), 0);
+				return super.getPassengerAttachmentPoint(passenger, dimensions, scaleFactor).subtract(0, (bigBounceAnimationState.getTimeInMillis(tickCount) / 500f), 0);
 			}
 		}
-		return super.getPassengerAttachmentPos(passenger, dimensions, scaleFactor);
+		return super.getPassengerAttachmentPoint(passenger, dimensions, scaleFactor);
 	}
 	
 	@Override
-	public boolean canHit() {
+	public boolean isPickable() {
 		return !this.isRemoved();
 	}
 	
 	@Override
 	public void tick() {
 		if(isAlive()) {
-			age++;
+			tickCount++;
 		}
 		if (this.getDamageWobbleTicks() > 0) {
 			this.setDamageWobbleTicks(this.getDamageWobbleTicks() - 1);
@@ -215,17 +182,17 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		}
 		super.tick();
 		updatePositionAndRotation: {
-			if (this.isLogicalSideForUpdatingMovement()) {
+			if (this.isLocalInstanceAuthoritative()) {
 				this.lerpTicks = 0;
-				this.updateTrackedPosition(this.getX(), this.getY(), this.getZ());
+				this.syncPacketPositionCodec(this.getX(), this.getY(), this.getZ());
 			}
 			if (this.lerpTicks <= 0) {
 				break updatePositionAndRotation;
 			}
-			this.lerpPosAndRotation(this.lerpTicks, this.getX(), this.getY(), this.getZ(), this.getYaw(), this.getPitch());
+			this.lerpPositionAndRotationStep(this.lerpTicks, this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
 			--this.lerpTicks;
 		}
-		if (this.isLogicalSideForUpdatingMovement()) {
+		if (this.isLocalInstanceAuthoritative()) {
 //			this.updateVelocity();
 			{
 				float forward = 0;
@@ -243,22 +210,22 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 					if(moveRight) {
 						strafe++;
 					}
-				} else if(isOnGround()) {
+				} else if(onGround()) {
 					chargingTicks++;
 					if(chargingTicks >= 10) {
 						chargingJump = false;
 						float jumpStrength = this.jumpStrength >= 90 ? 1.0f : 0.4f + 0.4f * (float)this.jumpStrength / 90.0f;
-						Vec3d velocity = getVelocity();
-						double dx = jumpStrength * 2.5 * Math.cos(Math.toRadians(getYaw() + 90));
-						double dz = jumpStrength * 2.5 * Math.sin(Math.toRadians(getYaw() + 90));
-						setVelocity(velocity.x + dx, velocity.y + jumpStrength * 2.2, velocity.z + dz);
+						Vec3 velocity = getDeltaMovement();
+						double dx = jumpStrength * 2.5 * Math.cos(Math.toRadians(getYRot() + 90));
+						double dz = jumpStrength * 2.5 * Math.sin(Math.toRadians(getYRot() + 90));
+						setDeltaMovement(velocity.x + dx, velocity.y + jumpStrength * 2.2, velocity.z + dz);
 					}
 				}
 				
-				double dx = forward * Math.cos(Math.toRadians(getYaw() + 90));
-				double dz = forward * Math.sin(Math.toRadians(getYaw() + 90));
-				dx -= strafe * Math.cos(Math.toRadians(getYaw()));
-				dz -= strafe * Math.sin(Math.toRadians(getYaw()));
+				double dx = forward * Math.cos(Math.toRadians(getYRot() + 90));
+				double dz = forward * Math.sin(Math.toRadians(getYRot() + 90));
+				dx -= strafe * Math.cos(Math.toRadians(getYRot()));
+				dz -= strafe * Math.sin(Math.toRadians(getYRot()));
 				if(strafe != 0 && forward != 0) {
 					dx /= SQRT_2;
 					dz /= SQRT_2;
@@ -266,58 +233,58 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 				dx *= 0.7;
 				dz *= 0.7;
 				
-				if(isOnGround()) {
-					setVelocity(getVelocity().x * 0.5 + dx * 0.5, getVelocity().y, getVelocity().getZ() * 0.5 + dz * 0.5);
+				if(onGround()) {
+					setDeltaMovement(getDeltaMovement().x * 0.5 + dx * 0.5, getDeltaMovement().y, getDeltaMovement().z() * 0.5 + dz * 0.5);
 				} else {
-					setVelocity(getVelocity().x * 0.95 + dx * 0.05, getVelocity().y, getVelocity().getZ() * 0.95 + dz * 0.05);
+					setDeltaMovement(getDeltaMovement().x * 0.95 + dx * 0.05, getDeltaMovement().y, getDeltaMovement().z() * 0.95 + dz * 0.05);
 				}
 				
-				double d = this.getFinalGravity();
-				Vec3d vec3d = this.getVelocity();
+				double d = this.getGravity();
+				Vec3 vec3d = this.getDeltaMovement();
 				double vy = Math.max(vec3d.y, -2);
-				this.setVelocity(vec3d.x, vy + d, vec3d.z);
+				this.setDeltaMovement(vec3d.x, vy + d, vec3d.z);
 			}
-			this.move(MovementType.SELF, this.getVelocity());
+			this.move(MoverType.SELF, this.getDeltaMovement());
 		} else {
-			this.setVelocity(Vec3d.ZERO);
+			this.setDeltaMovement(Vec3.ZERO);
 		}
-		this.tickBlockCollision();
-		List<Entity> list = this.getEntityWorld().getOtherEntities(this, this.getBoundingBox().expand(0.2f, -0.01f, 0.2f), EntityPredicates.canBePushedBy(this));
+		this.applyEffectsFromBlocks();
+		List<Entity> list = this.level().getEntities(this, this.getBoundingBox().inflate(0.2f, -0.01f, 0.2f), EntitySelector.pushableBy(this));
 		if (!list.isEmpty()) {
-			boolean bl = !this.getEntityWorld().isClient() && !(this.getControllingPassenger() instanceof PlayerEntity);
+			boolean bl = !this.level().isClientSide() && !(this.getControllingPassenger() instanceof Player);
 			for (Entity entity : list) {
 				if (entity.hasPassenger(this)) continue;
-				if (bl && this.getPassengerList().isEmpty() && !entity.hasVehicle() && entity instanceof LivingEntity && !(entity instanceof WaterCreatureEntity) && !(entity instanceof PlayerEntity)) {
+				if (bl && this.getPassengers().isEmpty() && !entity.isPassenger() && entity instanceof LivingEntity && !(entity instanceof Player)) {
 					entity.startRiding(this);
 					continue;
 				}
-				this.pushAwayFrom(entity);
+				this.push(entity);
 			}
 		}
 		
-		if(hasPassengers() && isBigBounce() && (isOnGround() || animationTicks >= 10)) {
+		if(hasControllingPassenger() && isBigBounce() && (onGround() || animationTicks >= 10)) {
 			smallBounceAnimationState.stop();
-			bigBounceAnimationState.startIfNotRunning(age);
-			if(bigBounceAnimationState.getTimeInMilliseconds(age) >= 1000) {
+			bigBounceAnimationState.startIfStopped(tickCount);
+			if(bigBounceAnimationState.getTimeInMillis(tickCount) >= 1000) {
 				setBigBounce(false);
 			}
 		} else {
 			bigBounceAnimationState.stop();
 			if(isSmallBounce()) {
-				smallBounceAnimationState.startIfNotRunning(age);
+				smallBounceAnimationState.startIfStopped(tickCount);
 			} else {
 				smallBounceAnimationState.stop();
 			}
 		}
-		if(isBigBounce() && (isOnGround() || animationTicks >= 10)) {
+		if(isBigBounce() && (onGround() || animationTicks >= 10)) {
 			animationTicks++;
 			if(animationTicks >= 20) {
 				animationTicks = 0;
 				setBigBounce(false);
 			}
 		}
-		Vec3d prevPos = new Vec3d(lastX, 0, lastZ);
-		setSmallBounce(prevPos.distanceTo(getEntityPos().multiply(1, 0, 1)) > 0.1 && isOnGround());
+		Vec3 prevPos = new Vec3(xOld, 0, zOld);
+		setSmallBounce(prevPos.distanceTo(position().multiply(1, 0, 1)) > 0.1 && onGround());
 	}
 	
 	public void setInputs(boolean moveForward, boolean moveBack, boolean moveLeft, boolean moveRight) {
@@ -328,32 +295,29 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	}
 	
 	@Override
-	public ActionResult interact(PlayerEntity player, Hand hand) {
-		ActionResult actionResult = super.interact(player, hand);
-		if (actionResult != ActionResult.PASS) {
-			return actionResult;
+	public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
+		InteractionResult superInteraction = super.interact(player, hand, location);
+		if (superInteraction != InteractionResult.PASS) {
+			return superInteraction;
+		} else {
+			return player.isSecondaryUseActive() || !this.level().isClientSide() && !player.startRiding(this)
+					? InteractionResult.PASS
+					: InteractionResult.SUCCESS;
 		}
-		if (player.shouldCancelInteraction()) {
-			return ActionResult.PASS;
-		}
-		if (!this.getEntityWorld().isClient()) {
-			return player.startRiding(this) ? ActionResult.CONSUME : ActionResult.PASS;
-		}
-		return ActionResult.PASS;
 	}
 	
 	@Override
-	protected double getGravity() {
+	protected double getDefaultGravity() {
 		return -0.2;
 	}
 	
 	@Override
-	public float getStepHeight() {
+	public float maxUpStep() {
 		return 1.0f;
 	}
 	
 	@Override
-	public boolean handleFallDamage(double fallDistance, float damageMultiplier, DamageSource damageSource) {
+	public boolean causeFallDamage(double fallDistance, float damageMultiplier, DamageSource damageSource) {
 		return false;
 	}
 	
@@ -365,18 +329,18 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	}
 	
 	@Override
-	public void onPassengerLookAround(Entity passenger) {
-		setYaw(passenger.getHeadYaw());
+	public void onPassengerTurned(Entity passenger) {
+		setYRot(passenger.getYHeadRot());
 	}
 	
 	@Override
-	protected void readCustomData(ReadView nbt) {
+	protected void readAdditionalSaveData(ValueInput nbt) {
 		this.readLeashData(nbt);
-		setBallColor(nbt.getInt("Color", 0xFF88DD88));
+		setBallColor(nbt.getIntOr("Color", 0xFF88DD88));
 	}
 	
 	@Override
-	protected void writeCustomData(WriteView nbt) {
+	protected void addAdditionalSaveData(ValueOutput nbt) {
 		this.writeLeashData(nbt, this.leashData);
 		nbt.putInt("Color", getBallColor());
 	}
@@ -392,20 +356,16 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 		this.leashData = leashData;
 	}
 	
-	public Item asItem() {
-		return ItemRegistry.BIG_BOUNCY_BALL_ITEM;
-	}
-	
 	public int getBallColor() {
-		return dataTracker.get(BALL_COLOR);
+		return entityData.get(BALL_COLOR);
 	}
 	
 	public void setBallColor(int rgb) {
-		dataTracker.set(BALL_COLOR, 0xFF000000 | rgb);
+		entityData.set(BALL_COLOR, 0xFF000000 | rgb);
 	}
 	
 	@Override
-	public void setJumpStrength(int strength) {
+	public void onPlayerJump(int strength) {
 		chargingJump = true;
 		chargingTicks = 0;
 		animationTicks = 0;
@@ -419,7 +379,7 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	}
 	
 	@Override
-	public void startJumping(int height) {
+	public void handleStartJump(int strength) {
 		chargingJump = true;
 		chargingTicks = 0;
 		animationTicks = 0;
@@ -427,6 +387,6 @@ public class BigBouncyBallEntity extends Entity implements Leashable, JumpingMou
 	}
 	
 	@Override
-	public void stopJumping() {
+	public void handleStopJump() {
 	}
 }

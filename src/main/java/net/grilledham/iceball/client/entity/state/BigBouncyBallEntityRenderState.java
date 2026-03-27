@@ -1,7 +1,7 @@
 package net.grilledham.iceball.client.entity.state;
 
-import net.minecraft.client.render.entity.state.EntityRenderState;
-import net.minecraft.entity.AnimationState;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.world.entity.AnimationState;
 
 public class BigBouncyBallEntityRenderState extends EntityRenderState {
 	public float yaw;

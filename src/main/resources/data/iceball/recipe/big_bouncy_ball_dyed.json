@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_dye",
+  "category": "misc",
+  "dye": "#minecraft:dyes",
+  "result": {
+    "id": "iceball:big_bouncy_ball"
+  },
+  "target": "iceball:big_bouncy_ball"
+}
