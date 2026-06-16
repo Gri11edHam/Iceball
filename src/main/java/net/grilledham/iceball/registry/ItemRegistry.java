@@ -19,6 +19,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -182,7 +183,7 @@ public class ItemRegistry {
 			.damage(0)
 			.cooldown(5)
 			.onCollide((ball, hitResult) -> {
-				LightningBolt lightning = new LightningBolt(EntityType.LIGHTNING_BOLT, ball.level());
+				LightningBolt lightning = new LightningBolt(EntityTypes.LIGHTNING_BOLT, ball.level());
 				lightning.setPos(ball.position());
 				ball.level().addFreshEntity(lightning);
 				if(!ball.level().isClientSide()) {

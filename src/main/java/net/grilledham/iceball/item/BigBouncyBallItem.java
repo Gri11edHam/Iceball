@@ -68,7 +68,7 @@ public class BigBouncyBallItem extends Item {
 		BigBouncyBallEntity bigBall = new BigBouncyBallEntity(world, pos.x, pos.y, pos.z);
 		bigBall.setBallColor(DyedItemColor.getOrDefault(stack, 0xFF88DD88));
 		if (world instanceof ServerLevel serverWorld) {
-			EntityType.createDefaultStackConfig(serverWorld, stack, player).accept(bigBall);
+			EntityType.createDefaultStackConfig(serverWorld, stack, player).apply(bigBall);
 		}
 		return bigBall;
 	}
