@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 0.3,
+  //? if >= 1.21.11 {
+  "ingredient": "minecraft:slime_ball",
+  //?} else {
+  /*"ingredient": {
+    "item": "minecraft:slime_ball"
+  },
+  *///?}
+  "result": {
+    "id": "iceball:bouncy_ball"
+  }
+}

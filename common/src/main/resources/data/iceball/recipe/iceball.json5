@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "W"
+  ],
+  "key": {
+    //? if >= 1.21.11 {
+    "W": "minecraft:ice"
+    //?} else {
+    /*"W": {
+      "item": "minecraft:ice"
+    }
+    *///?}
+  },
+  "result": {
+    "id": "iceball:iceball",
+    "count": 4
+  }
+}

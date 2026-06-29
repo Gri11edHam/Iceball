@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " W ",
+    "WWW",
+    " W "
+  ],
+  "key": {
+    //? if >= 1.21.11 {
+    "W": "minecraft:beef"
+    //?} else {
+    /*"W": {
+      "item": "minecraft:beef"
+    }
+    *///?}
+  },
+  "result": {
+    "id": "iceball:meatball",
+    "count": 3
+  }
+}

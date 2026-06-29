@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "${modId}",
+	"version": "${modVersion}",
+	"name": "${modName}",
+	"description": "${modDescription}",
+	"authors": [
+		"GrilledHam"
+	],
+	"contact": {
+		"homepage": "${modHomepage}",
+		"sources": "${modSources}",
+		"issues": "${modIssues}"
+	},
+	"license": "${modLicense}",
+	"icon": "assets/iceball/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"client": [
+			"net.grilledham.iceball.fabric.ClientEntrypoint"
+		],
+		"main": [
+			"net.grilledham.iceball.fabric.Entrypoint"
+		]
+	},
+	"mixins": [
+		"iceball.mixins.json"
+	],
+	"accessWidener": "${modId}.accesswidener",
+	"depends": {
+		"fabricloader": "*",
+		"fabric-api": "*",
+		"minecraft": "${mcCompatFabric}"
+	}
+}

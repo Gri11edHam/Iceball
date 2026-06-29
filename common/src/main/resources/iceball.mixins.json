@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.grilledham.iceball.mixin",
+  "compatibilityLevel": "JAVA_${javaVersion}",
+  "mixins": [
+    "LightningRodBlockMixin"
+  ],
+  "client": [
+    "BigBouncyBallInputsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+	}
+}

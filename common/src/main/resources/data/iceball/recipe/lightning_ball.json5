@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " W ",
+    "WXW",
+    " W "
+  ],
+  "key": {
+    //? if >= 1.21.11 {
+    "W": "minecraft:copper_ingot",
+    "X": "minecraft:redstone_block"
+    //?} else {
+    /*"W": {
+      "item": "minecraft:copper_ingot"
+    },
+    "X": {
+      "item": "minecraft:redstone_block"
+    }
+    *///?}
+  },
+  "result": {
+    "id": "iceball:lightning_ball",
+    "count": 1
+  }
+}

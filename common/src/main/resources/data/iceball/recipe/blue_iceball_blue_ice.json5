@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WW",
+    "WW"
+  ],
+  "key": {
+    //? if >= 1.21.11 {
+    "W": "iceball:blue_iceball"
+    //?} else {
+    /*"W": {
+      "item": "iceball:blue_iceball"
+    }
+    *///?}
+  },
+  "result": {
+    "id": "minecraft:blue_ice",
+    "count": 1
+  }
+}

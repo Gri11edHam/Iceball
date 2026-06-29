@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " W ",
+    "WXW",
+    " W "
+  ],
+  "key": {
+    //? if >= 1.21.11 {
+    "W": "minecraft:tnt",
+    "X": "minecraft:snowball"
+    //?} else {
+    /*"W": {
+      "item": "minecraft:tnt"
+    },
+    "X": {
+      "item": "minecraft:snowball"
+    }
+    *///?}
+  },
+  "result": {
+    "id": "iceball:boomball",
+    "count": 1
+  }
+}

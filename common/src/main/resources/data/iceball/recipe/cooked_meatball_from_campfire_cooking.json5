@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:campfire_cooking",
+  "category": "food",
+  "cookingtime": 600,
+  "experience": 0.35,
+  //? if >= 1.21.11 {
+  "ingredient": "iceball:meatball",
+  //?} else {
+  /*"ingredient": {
+    "item": "iceball:meatball"
+  },
+  *///?}
+  "result": {
+    "id": "iceball:cooked_meatball"
+  }
+}
