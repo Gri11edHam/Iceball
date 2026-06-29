@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "cookingtime": 400,
+  "experience": 0.35,
+  //? if >= 1.21.11 {
+  "ingredient": "iceball:fireball",
+  //?} else {
+  /*"ingredient": {
+    "item": "iceball:fireball"
+  },
+  *///?}
+  "result": {
+    "id": "iceball:flaming_fireball"
+  }
+}

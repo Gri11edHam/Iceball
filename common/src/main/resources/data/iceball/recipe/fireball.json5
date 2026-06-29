@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " W ",
+    "WXW",
+    " W "
+  ],
+  "key": {
+    //? if >= 1.21.11 {
+    "W": "minecraft:blaze_powder",
+    "X": "minecraft:coal_block"
+    //?} else {
+    /*"W": {
+      "item": "minecraft:blaze_powder"
+    },
+    "X": {
+      "item": "minecraft:coal_block"
+    }
+    *///?}
+  },
+  "result": {
+    "id": "iceball:fireball",
+    "count": 1
+  }
+}

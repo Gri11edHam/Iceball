@@ -17,11 +17,14 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.ExplosionDamageCalculator;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.SimpleExplosionDamageCalculator;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.Optional;
 
 public class IceballItems {
 	
@@ -36,6 +39,8 @@ public class IceballItems {
 	public static BigBouncyBallItem BIG_BOUNCY_BALL_ITEM;
 	public static IceballItem LIGHTNING_BALL_ITEM;
 	public static IceballItem CHARGED_LIGHTNING_BALL_ITEM;
+	public static IceballItem FIREBALL_ITEM;
+	public static IceballItem FLAMING_FIREBALL_ITEM;
 	
 	public static void init(ItemRegistry itemRegistry) {
 		ICEBALL_ITEM = itemRegistry.register("iceball", new IceballItem.Builder()
@@ -224,6 +229,75 @@ public class IceballItems {
 						.build(),
 				new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON)
 		);
+		FIREBALL_ITEM = itemRegistry.register("fireball", new IceballItem.Builder()
+						.damage(1)
+						.cooldown(0)
+						.onCollide((ball, hitResult) -> {
+							if(ball.level() instanceof ServerLevel world) {
+								if(hitResult instanceof EntityHitResult ehr) {
+									ehr.getEntity().igniteForSeconds(2);
+								}
+								if(ball.getOwner() != null) {
+									if(ball.getOwner().isAlwaysTicking()) {
+										Player owner = (Player)ball.getOwner();
+										if(!owner.isCreative()) {
+											ball.spawnAtLocation(/*? if >= 1.21.11 >>+ ' '*/world, ball.getItem());
+										}
+									}
+								} else {
+									ball.spawnAtLocation(/*? if >= 1.21.11 >>+ ' '*/world, ball.getItem());
+								}
+							}
+							return true;
+						})
+						.onTick(ball -> {
+							if(ball.isOnFire()) {
+								ball.setItem(ball.getItem().transmuteCopy(FLAMING_FIREBALL_ITEM));
+								ball.clearFire();
+							}
+						})
+						.build(),
+				new Item.Properties().stacksTo(16).rarity(Rarity.COMMON)
+		);
+		FLAMING_FIREBALL_ITEM = itemRegistry.register("flaming_fireball", new IceballItem.Builder()
+						.damage(0)
+						.cooldown(5)
+						.onCollide((ball, hitResult) -> {
+							if(ball.level() instanceof ServerLevel world) {
+								world.getEntities(ball, ball.getBoundingBox().inflate(8))
+										.stream()
+										.filter(entity -> !entity.fireImmune() && entity.distanceTo(ball) < 8)
+										.forEach(entity -> entity.igniteForSeconds(20));
+								world.explode(ball, ball.damageSources().explosion(
+										ball,
+										ball.getOwner()),
+										new SimpleExplosionDamageCalculator(true, false, Optional.of(0.0F), Optional.empty()),
+										ball.position(),
+										8,
+										true,
+										Level.ExplosionInteraction.NONE);
+								if(ball.getOwner() != null) {
+									if(ball.getOwner().isAlwaysTicking()) {
+										Player owner = (Player)ball.getOwner();
+										if(!owner.isCreative()) {
+											ItemEntity itemEntity = new ItemEntity(ball.level(), ball.getX(), ball.getY(), ball.getZ(), ball.getItem().transmuteCopy(FIREBALL_ITEM));
+											itemEntity.setInvulnerable(true);
+											itemEntity.setDefaultPickUpDelay();
+											world.addFreshEntity(itemEntity);
+										}
+									}
+								} else {
+									ItemEntity itemEntity = new ItemEntity(ball.level(), ball.getX(), ball.getY(), ball.getZ(), ball.getItem().transmuteCopy(FIREBALL_ITEM));
+									itemEntity.setInvulnerable(true);
+									itemEntity.setDefaultPickUpDelay();
+									world.addFreshEntity(itemEntity);
+								}
+							}
+							return true;
+						})
+						.build(),
+				new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON).fireResistant()
+		);
 		
 		DispenserBlock.registerProjectileBehavior(ICEBALL_ITEM);
 		DispenserBlock.registerProjectileBehavior(PACKED_ICEBALL_ITEM);
@@ -247,6 +321,8 @@ public class IceballItems {
 		});
 		DispenserBlock.registerProjectileBehavior(LIGHTNING_BALL_ITEM);
 		DispenserBlock.registerProjectileBehavior(CHARGED_LIGHTNING_BALL_ITEM);
+		DispenserBlock.registerProjectileBehavior(FIREBALL_ITEM);
+		DispenserBlock.registerProjectileBehavior(FLAMING_FIREBALL_ITEM);
 	}
 	
 	public static void initClient(ItemRegistry itemRegistry) {
@@ -256,9 +332,13 @@ public class IceballItems {
 		itemRegistry.registerClient(BOOMBALL_ITEM, new ItemRegistry.ItemGroupData(CreativeModeTabs.COMBAT).after(BLUE_ICEBALL_ITEM));
 		itemRegistry.registerClient(LIGHTNING_BALL_ITEM, new ItemRegistry.ItemGroupData(CreativeModeTabs.COMBAT).after(BOOMBALL_ITEM));
 		itemRegistry.registerClient(CHARGED_LIGHTNING_BALL_ITEM, new ItemRegistry.ItemGroupData(CreativeModeTabs.COMBAT).after(LIGHTNING_BALL_ITEM));
-		itemRegistry.registerClient(SPIKEBALL_ITEM, new ItemRegistry.ItemGroupData(CreativeModeTabs.COMBAT).after(CHARGED_LIGHTNING_BALL_ITEM));
+		itemRegistry.registerClient(FIREBALL_ITEM, new ItemRegistry.ItemGroupData(CreativeModeTabs.COMBAT).after(CHARGED_LIGHTNING_BALL_ITEM));
+		itemRegistry.registerClient(FLAMING_FIREBALL_ITEM, new ItemRegistry.ItemGroupData(CreativeModeTabs.COMBAT).after(FIREBALL_ITEM));
+		itemRegistry.registerClient(SPIKEBALL_ITEM, new ItemRegistry.ItemGroupData(CreativeModeTabs.COMBAT).after(FLAMING_FIREBALL_ITEM));
+		
 		itemRegistry.registerClient(MEATBALL_ITEM, new ItemRegistry.ItemGroupData(CreativeModeTabs.FOOD_AND_DRINKS).after(Items.COOKED_RABBIT));
 		itemRegistry.registerClient(COOKED_MEATBALL_ITEM, new ItemRegistry.ItemGroupData(CreativeModeTabs.FOOD_AND_DRINKS).after(MEATBALL_ITEM));
+		
 		itemRegistry.registerClient(BOUNCY_BALL_ITEM, new ItemRegistry.ItemGroupData(CreativeModeTabs.COMBAT).after(SPIKEBALL_ITEM));
 		itemRegistry.registerClient(BIG_BOUNCY_BALL_ITEM, new ItemRegistry.ItemGroupData(CreativeModeTabs.TOOLS_AND_UTILITIES).after(Items.BAMBOO_CHEST_RAFT));
 	}
