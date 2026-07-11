@@ -19,8 +19,8 @@ public class ClientEntrypoint implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		IceballClient.initClient();
-		IceballItems.initClient(FabricItemRegistry.getInstance());
 		IceballEntities.initClient(FabricEntityRegistry.getInstance());
+		IceballItems.initClient(FabricItemRegistry.getInstance());
 		
 		//? if < 1.21.11 {
 		/*ColorProviderRegistry.ITEM.register((stack, tintIndex) -> DyedItemColor.getOrDefault(stack, 0xFF88DD88), IceballItems.BOUNCY_BALL_ITEM);

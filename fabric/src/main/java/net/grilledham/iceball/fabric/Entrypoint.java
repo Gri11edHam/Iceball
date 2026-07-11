@@ -15,8 +15,8 @@ public class Entrypoint implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		Iceball.init();
-		IceballItems.init(FabricItemRegistry.getInstance());
 		IceballEntities.init(FabricEntityRegistry.getInstance());
+		IceballItems.init(FabricItemRegistry.getInstance());
 		LootTableEvents.MODIFY.register((key, tableBuilder, source, wrapperLookup) -> {
 			if(source.isBuiltin() && BuiltInLootTables.TRIAL_CHAMBERS_REWARD_OMINOUS_UNIQUE.equals(key)) {
 				tableBuilder.modifyPools(builder -> builder.add(LootItem.lootTableItem(IceballItems.SPIKEBALL_ITEM)));

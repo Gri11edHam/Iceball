@@ -11,31 +11,27 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 //?} else
 //import net.minecraft.world.InteractionResultHolder;
+//? if >= 1.21.11
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ProjectileItem;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.HitResult;
 
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class IceballItem extends Item implements ProjectileItem {
 	
-	private final int damage;
+	private final EntityType<IceballEntity> entityType;
 	private final int cooldown;
-	private final BiFunction<IceballEntity, HitResult, Boolean> onCollide;
-	private final Consumer<IceballEntity> onTick;
 	
-	IceballItem(Item.Properties settings, int damage, int cooldown, BiFunction<IceballEntity, HitResult, Boolean> onCollide, Consumer<IceballEntity> onTick) {
+	IceballItem(Item.Properties settings, EntityType<IceballEntity> entityType, int cooldown) {
 		super(settings);
-		this.damage = damage;
+		this.entityType = entityType;
 		this.cooldown = cooldown;
-		this.onCollide = onCollide;
-		this.onTick = onTick;
 	}
 	
 	@Override
@@ -47,8 +43,10 @@ public class IceballItem extends Item implements ProjectileItem {
 		world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.SNOWBALL_THROW, SoundSource.NEUTRAL, 0.5F, 0.4F / (world.getRandom().nextFloat() * 0.4F + 0.8F));
 		user.getCooldowns().addCooldown(itemStack/*? if < 1.21.11 >> ','*//*.getItem()*/, cooldown);
 		if (!world.isClientSide()) {
-			IceballEntity iceballEntity = new IceballEntity(world, user, itemStack, damage, onCollide, onTick);
+			IceballEntity iceballEntity = entityType.create(world/*? if >= 1.21.11 >> ')'*/, EntitySpawnReason.TRIGGERED);
+			iceballEntity.setPos(user.getX(), user.getEyeY() - 0.1, user.getZ());
 			iceballEntity.setItem(itemStack);
+			iceballEntity.setOwner(user);
 			iceballEntity.shootFromRotation(user, user.getXRot(), user.getYRot(), 0.0F, 1.5F, 1.0F);
 			world.addFreshEntity(iceballEntity);
 		}
@@ -66,20 +64,18 @@ public class IceballItem extends Item implements ProjectileItem {
 	
 	@Override
 	public Projectile asProjectile(Level world, Position pos, ItemStack stack, Direction direction) {
-		IceballEntity iceballEntity = new IceballEntity(world, pos, stack, damage, onCollide, onTick);
+		IceballEntity iceballEntity = entityType.create(world/*? if >= 1.21.11 >> ')'*/, EntitySpawnReason.TRIGGERED);
+		iceballEntity.setPos(pos.x(), pos.y(), pos.z());
 		iceballEntity.setItem(stack);
 		return iceballEntity;
 	}
 	
 	public static class Builder {
-		private int damage = 1;
+		private final EntityType<IceballEntity> entityType;
 		private int cooldown = 0;
-		private BiFunction<IceballEntity, HitResult, Boolean> onCollide = (ball, hitResult) -> true;
-		private Consumer<IceballEntity> onTick = (ball) -> {};
 		
-		public Builder damage(int damage) {
-			this.damage = damage;
-			return this;
+		public Builder(EntityType<IceballEntity> entityType) {
+			this.entityType = entityType;
 		}
 		
 		public Builder cooldown(int cooldown) {
@@ -87,18 +83,8 @@ public class IceballItem extends Item implements ProjectileItem {
 			return this;
 		}
 		
-		public Builder onCollide(BiFunction<IceballEntity, HitResult, Boolean> onCollide) {
-			this.onCollide = onCollide;
-			return this;
-		}
-		
-		public Builder onTick(Consumer<IceballEntity> onTick) {
-			this.onTick = onTick;
-			return this;
-		}
-		
-		public Function<Item.Properties, IceballItem> build() {
-			return settings -> new IceballItem(settings, damage, cooldown, onCollide, onTick);
+		public Function<Properties, IceballItem> build() {
+			return settings -> new IceballItem(settings, entityType, cooldown);
 		}
 	}
 }
