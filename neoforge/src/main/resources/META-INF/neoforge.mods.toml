@@ -9,7 +9,7 @@ version = "${modVersion}"
 displayName = "${modName}"
 authors = "GrilledHam"
 description = "${modDescription}"
-logoFile = "assets/iceball/icon.png"
+iconFile = "assets/iceball/icon.png"
 logoBlur = false
 displayURL = "${modHomepage}"
 

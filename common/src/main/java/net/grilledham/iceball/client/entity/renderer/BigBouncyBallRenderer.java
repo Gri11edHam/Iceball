@@ -38,15 +38,24 @@ public class BigBouncyBallRenderer extends EntityRenderer<BigBouncyBallEntity/*?
 	@Override
 	public void submit(BigBouncyBallEntityRenderState renderState, PoseStack matrices, SubmitNodeCollector queue, CameraRenderState cameraState) {
 		matrices.pushPose();
-		matrices.mulPose(Axis.YP.rotationDegrees(180.0f - renderState.yaw));
+		//? if >= 26.3 {
+		matrices.rotateDegrees(Axis.YP, 180.0f - renderState.yaw);
+		//?} else
+		//matrices.mulPose(Axis.YP.rotationDegrees(180.0f - renderState.yaw));
 		float h = renderState.damageWobbleTicks;
 		float j = renderState.damageWobbleStrength;
 		if (h > 0.0f) {
-			matrices.mulPose(Axis.XP.rotationDegrees(Mth.sin(h) * h * j / 10.0f * renderState.damageWobbleSide));
+			//? if >= 26.3 {
+			matrices.rotateDegrees(Axis.XP, Mth.sin(h) * h * j / 10.0f * renderState.damageWobbleSide);
+			//?} else
+			//matrices.mulPose(Axis.XP.rotationDegrees(Mth.sin(h) * h * j / 10.0f * renderState.damageWobbleSide));
 		}
 		matrices.scale(-1.0f, -1.0f, 1.0f);
-		matrices.mulPose(Axis.YP.rotationDegrees(90.0f));
-		queue.submitModel(model, renderState, matrices, model.renderType(texture), renderState.lightCoords, OverlayTexture.NO_OVERLAY, renderState.ballColor, null, renderState.outlineColor, null);
+		//? if >= 26.3 {
+		matrices.rotateDegrees(Axis.YP, 90.0f);
+		//?} else
+		//matrices.mulPose(Axis.YP.rotationDegrees(90.0f));
+		queue.submitModel(model, renderState, matrices, model.renderType(texture), renderState.lightCoords, OverlayTexture.NO_OVERLAY, renderState.ballColor, null, renderState.outlineColor/*? if < 26.3 >> ');'*//*, null*/);
 		matrices.popPose();
 		super.submit(renderState, matrices, queue, cameraState);
 	}

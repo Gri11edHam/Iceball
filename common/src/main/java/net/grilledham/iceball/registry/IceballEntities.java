@@ -237,14 +237,16 @@ public class IceballEntities {
 												Player owner = (Player)ball.getOwner();
 												if(!owner.isCreative()) {
 													ItemEntity itemEntity = new ItemEntity(ball.level(), ball.getX(), ball.getY(), ball.getZ(), ball.getItem().transmuteCopy(IceballItems.LIGHTNING_BALL_ITEM));
-													itemEntity.setInvulnerable(true);
+													//~ if >= 26.3 'setInvulnerable' -> 'setPermanentlyInvulnerable'
+													itemEntity.setPermanentlyInvulnerable(true);
 													itemEntity.setDefaultPickUpDelay();
 													ball.level().addFreshEntity(itemEntity);
 												}
 											}
 										} else {
 											ItemEntity itemEntity = new ItemEntity(ball.level(), ball.getX(), ball.getY(), ball.getZ(), ball.getItem().transmuteCopy(IceballItems.LIGHTNING_BALL_ITEM));
-											itemEntity.setInvulnerable(true);
+											//~ if >= 26.3 'setInvulnerable' -> 'setPermanentlyInvulnerable'
+											itemEntity.setPermanentlyInvulnerable(true);
 											itemEntity.setDefaultPickUpDelay();
 											ball.level().addFreshEntity(itemEntity);
 										}
@@ -311,14 +313,16 @@ public class IceballEntities {
 												Player owner = (Player)ball.getOwner();
 												if(!owner.isCreative()) {
 													ItemEntity itemEntity = new ItemEntity(ball.level(), ball.getX(), ball.getY(), ball.getZ(), ball.getItem().transmuteCopy(IceballItems.FIREBALL_ITEM));
-													itemEntity.setInvulnerable(true);
+													//~ if >= 26.3 'setInvulnerable' -> 'setPermanentlyInvulnerable'
+													itemEntity.setPermanentlyInvulnerable(true);
 													itemEntity.setDefaultPickUpDelay();
 													world.addFreshEntity(itemEntity);
 												}
 											}
 										} else {
 											ItemEntity itemEntity = new ItemEntity(ball.level(), ball.getX(), ball.getY(), ball.getZ(), ball.getItem().transmuteCopy(IceballItems.FIREBALL_ITEM));
-											itemEntity.setInvulnerable(true);
+											//~ if >= 26.3 'setInvulnerable' -> 'setPermanentlyInvulnerable'
+											itemEntity.setPermanentlyInvulnerable(true);
 											itemEntity.setDefaultPickUpDelay();
 											world.addFreshEntity(itemEntity);
 										}
